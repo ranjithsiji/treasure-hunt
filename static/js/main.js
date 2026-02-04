@@ -11,10 +11,19 @@ $(document).ready(function () {
         }
     });
 
-    // Form validation
-    $('form').on('submit', function () {
-        $(this).find('button[type="submit"]').prop('disabled', true).html(
-            '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...'
-        );
+    // Form loading state
+    $('form').on('submit', function (e) {
+        const $button = $(this).find('button[type="submit"]');
+        const originalHtml = $button.html();
+
+        // Use timeout to allow other submit handlers (validation) to run first
+        // and potentially call e.preventDefault()
+        setTimeout(() => {
+            if (!e.isDefaultPrevented()) {
+                $button.prop('disabled', true).html(
+                    '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...'
+                );
+            }
+        }, 0);
     });
 });

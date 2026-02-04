@@ -55,7 +55,7 @@
                     <div class="mb-3">
                         <label for="question_text" class="admin-form-label">Question Text (HTML Supported) *</label>
                         <textarea id="question_text" name="question_text"
-                            class="form-control">{% if question %}{{ question.question_text }}{% endif %}</textarea>
+                            class="form-control">{% if question %}{{ question.question_text | safe }}{% endif %}</textarea>
                         <small class="text-muted">Use the editor above to format your question with HTML</small>
                     </div>
 
@@ -73,7 +73,7 @@
                             <span class="badge bg-info ms-2">Shown after correct answer</span>
                         </label>
                         <textarea id="explanation" name="explanation"
-                            class="form-control">{% if question %}{{ question.explanation }}{% endif %}</textarea>
+                            class="form-control">{% if question %}{{ question.explanation | safe }}{% endif %}</textarea>
                         <small class="text-muted">
                             <i class="bi bi-info-circle"></i>
                             This explanation will be displayed to participants after they answer correctly.

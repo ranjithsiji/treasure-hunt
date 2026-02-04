@@ -23,7 +23,7 @@
                     </h5>
 
                     <div class="question-content">
-                        <p class="lead">{{ question.question_text }}</p>
+                        {{ question.question_text | safe }}
 
                         {% if question.media_url %}
                         {% if question.question_type == 'image' %}
@@ -134,6 +134,8 @@
 <script>
     $(document).ready(function () {
         let redirectUrl = '';
+        const $submitBtn = $('#answer-form').find('button[type="submit"]');
+        const originalBtnHtml = $submitBtn.html();
 
         // Get Clue button click handler
         $('#get-clue-btn').on('click', function () {
@@ -167,6 +169,11 @@
 
         $('#answer-form').on('submit', function (e) {
             e.preventDefault();
+
+            // Set loading state
+            $submitBtn.prop('disabled', true).html(
+                '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...'
+            );
 
             const formData = $(this).serialize();
 
@@ -205,19 +212,43 @@
                         }
                     } else {
                         $('#message-container').html(`
-                        <div class="alert alert-danger">
-                            <i class="bi bi-x-circle-fill"></i> ${response.message}
-                        </div>
-                    `);
+                            <div class="alert alert-danger">
+                                <i class="bi bi-x-circle-fill"></i> ${response.message}
+                            </div>
+                        `);
                         $('#answer').val('').focus();
+
+                        // Start 10 second cooldown
+                        let countdown = 10;
+                        const timer = setInterval(function () {
+                            $submitBtn.html(`<i class="bi bi-clock-history"></i> Wait ${countdown}s...`);
+                            countdown--;
+
+                            if (countdown < 0) {
+                                clearInterval(timer);
+                                $submitBtn.prop('disabled', false).html(originalBtnHtml);
+                            }
+                        }, 1000);
                     }
                 },
                 error: function () {
                     $('#message-container').html(`
-                    <div class="alert alert-danger">
-                        <i class="bi bi-x-circle-fill"></i> Error submitting answer. Please try again.
-                    </div>
-                `);
+                        <div class="alert alert-danger">
+                            <i class="bi bi-x-circle-fill"></i> Error submitting answer. Please try again.
+                        </div>
+                    `);
+
+                    // Start 10 second cooldown even on error
+                    let countdown = 10;
+                    const timer = setInterval(function () {
+                        $submitBtn.html(`<i class="bi bi-clock-history"></i> Wait ${countdown}s...`);
+                        countdown--;
+
+                        if (countdown < 0) {
+                            clearInterval(timer);
+                            $submitBtn.prop('disabled', false).html(originalBtnHtml);
+                        }
+                    }, 1000);
                 }
             });
         });

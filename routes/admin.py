@@ -426,9 +426,39 @@ def delete_team(team_id):
 @login_required
 @admin_required
 def manage_users():
-    users = User.query.filter_by(is_admin=False).all()
+    users = User.query.all()
     teams = Team.query.all()
     return render_template('admin/manage_users.html', users=users, teams=teams)
+
+@admin_bp.route('/add-user', methods=['POST'])
+@login_required
+@admin_required
+def add_user():
+    username = request.form.get('username')
+    email = request.form.get('email')
+    password = request.form.get('password')
+    team_id = request.form.get('team_id')
+    is_admin = request.form.get('is_admin') == '1'
+    
+    if User.query.filter_by(username=username).first():
+        flash('Username already exists.', 'danger')
+        return redirect(url_for('admin.manage_users'))
+    
+    if User.query.filter_by(email=email).first():
+        flash('Email already exists.', 'danger')
+        return redirect(url_for('admin.manage_users'))
+    
+    user = User(username=username, email=email, is_admin=is_admin)
+    user.set_password(password)
+    
+    if team_id:
+        user.team_id = int(team_id)
+        
+    db.session.add(user)
+    db.session.commit()
+    
+    flash(f'User {username} created successfully!', 'success')
+    return redirect(url_for('admin.manage_users'))
 
 @admin_bp.route('/assign-team/<int:user_id>', methods=['POST'])
 @login_required
@@ -444,4 +474,25 @@ def assign_team(user_id):
     
     db.session.commit()
     flash('Team assignment updated!', 'success')
+    return redirect(url_for('admin.manage_users'))
+
+@admin_bp.route('/delete-user/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    # Prevent deleting yourself
+    if user.id == current_user.id:
+        flash('You cannot delete your own account.', 'danger')
+        return redirect(url_for('admin.manage_users'))
+        
+    # Prevent deleting other admins if needed? Usually one admin can't delete another?
+    # Let's just allow it for now but maybe keep it restricted to non-admins if desired.
+    
+    username = user.username
+    db.session.delete(user)
+    db.session.commit()
+    
+    flash(f'User {username} deleted successfully.', 'success')
     return redirect(url_for('admin.manage_users'))
