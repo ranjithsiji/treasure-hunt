@@ -189,6 +189,7 @@ def add_question(level_id):
         question_type = request.form.get('question_type')
         question_text = request.form.get('question_text')  # Now contains HTML
         answer = request.form.get('answer')
+        explanation = request.form.get('explanation', '')  # Optional explanation
         question_number = int(request.form.get('question_number'))
         points = int(request.form.get('points', 10))
         
@@ -199,6 +200,7 @@ def add_question(level_id):
             question_type=question_type,
             question_text=question_text,
             answer=answer,
+            explanation=explanation,
             points=points
         )
         
@@ -259,6 +261,7 @@ def edit_question(question_id):
         question.question_type = request.form.get('question_type')
         question.question_text = request.form.get('question_text')  # HTML content
         question.answer = request.form.get('answer')
+        question.explanation = request.form.get('explanation', '')  # Optional explanation
         question.question_number = int(request.form.get('question_number'))
         question.points = int(request.form.get('points', 10))
         

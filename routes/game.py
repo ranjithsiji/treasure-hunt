@@ -102,11 +102,20 @@ def submit_answer():
             
             db.session.commit()
             
-            return jsonify({
+            response_data = {
                 'success': True,
-                'message': 'Correct answer! Moving to next question...',
+                'message': 'Correct answer!',
                 'redirect': url_for('game.dashboard')
-            })
+            }
+            
+            # Add explanation if available
+            if question.explanation:
+                response_data['explanation'] = question.explanation
+                response_data['has_explanation'] = True
+            else:
+                response_data['has_explanation'] = False
+            
+            return jsonify(response_data)
         else:
             return jsonify({'success': False, 'message': 'Question already completed.'})
     else:

@@ -78,6 +78,7 @@ class Question(db.Model):
     question_text = db.Column(db.Text, nullable=False)  # Now supports HTML content
     media_url = db.Column(db.String(255), nullable=True)  # Kept for backward compatibility
     answer = db.Column(db.String(255), nullable=False)
+    explanation = db.Column(db.Text, nullable=True)  # Explanation shown after correct answer (HTML supported)
     points = db.Column(db.Integer, default=10)  # Points for correct answer
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -85,6 +86,7 @@ class Question(db.Model):
     level = db.relationship('Level', back_populates='questions')
     clues = db.relationship('Clue', back_populates='question', cascade='all, delete-orphan')
     media_files = db.relationship('QuestionMedia', back_populates='question', cascade='all, delete-orphan')
+
 
 class QuestionMedia(db.Model):
     __tablename__ = 'question_media'

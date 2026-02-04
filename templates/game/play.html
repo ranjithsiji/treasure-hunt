@@ -82,7 +82,7 @@
                 <div class="card-body">
                     <p class="text-muted">Stuck on this question? Use a clue to get help!</p>
                     <div class="d-grid">
-                        <button id="get-clue-btn" class="btn btn-warning" onclick="getClue({{ question.id }})">
+                        <button id="get-clue-btn" class="btn btn-warning" data-question-id="{{ question.id }}">
                             <i class="bi bi-lightbulb-fill"></i> Get Clue
                         </button>
                     </div>
@@ -100,39 +100,71 @@
     </div>
 </div>
 
+<!-- Explanation Modal -->
+<div class="modal fade" id="explanationModal" tabindex="-1" aria-labelledby="explanationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="explanationModalLabel">
+                    <i class="bi bi-check-circle-fill"></i> Correct Answer!
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-success mb-3">
+                    <i class="bi bi-trophy-fill"></i> Great job! Your answer is correct.
+                </div>
+                <div id="explanationContent">
+                    <!-- Explanation will be inserted here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="continueBtn">
+                    <i class="bi bi-arrow-right-circle"></i> Continue to Next Question
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    function getClue(questionId) {
-        $.ajax({
-            url: '/game/get-clue/' + questionId,
-            method: 'GET',
-            success: function (response) {
-                if (response.success) {
-                    const clueHtml = `
-                    <div class="clue-box">
-                        <h6><i class="bi bi-lightbulb-fill"></i> Clue:</h6>
-                        <p>${response.clue}</p>
-                    </div>
-                `;
-                    $('#clues-container').append(clueHtml);
-                    $('#clues-remaining').text(response.clues_remaining);
-
-                    if (response.clues_remaining <= 0) {
-                        $('#get-clue-btn').prop('disabled', true).text('No Clues Left');
-                    }
-                } else {
-                    alert(response.message);
-                }
-            },
-            error: function () {
-                alert('Error getting clue. Please try again.');
-            }
-        });
-    }
-
     $(document).ready(function () {
+        let redirectUrl = '';
+
+        // Get Clue button click handler
+        $('#get-clue-btn').on('click', function () {
+            const questionId = $(this).data('question-id');
+            $.ajax({
+                url: '/game/get-clue/' + questionId,
+                method: 'GET',
+                success: function (response) {
+                    if (response.success) {
+                        const clueHtml = `
+                        <div class="clue-box">
+                            <h6><i class="bi bi-lightbulb-fill"></i> Clue:</h6>
+                            <p>${response.clue}</p>
+                        </div>
+                    `;
+                        $('#clues-container').append(clueHtml);
+                        $('#clues-remaining').text(response.clues_remaining);
+
+                        if (response.clues_remaining <= 0) {
+                            $('#get-clue-btn').prop('disabled', true).text('No Clues Left');
+                        }
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function () {
+                    alert('Error getting clue. Please try again.');
+                }
+            });
+        });
+
         $('#answer-form').on('submit', function (e) {
             e.preventDefault();
 
@@ -144,14 +176,33 @@
                 data: formData,
                 success: function (response) {
                     if (response.success) {
-                        $('#message-container').html(`
-                        <div class="alert alert-success">
-                            <i class="bi bi-check-circle-fill"></i> ${response.message}
-                        </div>
-                    `);
-                        setTimeout(function () {
-                            window.location.href = response.redirect;
-                        }, 1500);
+                        redirectUrl = response.redirect;
+
+                        // Check if there's an explanation
+                        if (response.has_explanation && response.explanation) {
+                            // Show explanation modal
+                            $('#explanationContent').html(`
+                                <div class="explanation-box">
+                                    <h6 class="mb-3"><i class="bi bi-book"></i> Explanation:</h6>
+                                    <div class="explanation-text">
+                                        ${response.explanation}
+                                    </div>
+                                </div>
+                            `);
+
+                            const modal = new bootstrap.Modal(document.getElementById('explanationModal'));
+                            modal.show();
+                        } else {
+                            // No explanation, show success message and redirect
+                            $('#message-container').html(`
+                                <div class="alert alert-success">
+                                    <i class="bi bi-check-circle-fill"></i> ${response.message}
+                                </div>
+                            `);
+                            setTimeout(function () {
+                                window.location.href = redirectUrl;
+                            }, 1500);
+                        }
                     } else {
                         $('#message-container').html(`
                         <div class="alert alert-danger">
@@ -170,6 +221,72 @@
                 }
             });
         });
+
+        // Continue button in modal
+        $('#continueBtn').on('click', function () {
+            window.location.href = redirectUrl;
+        });
+
+        // Also redirect when modal is closed
+        $('#explanationModal').on('hidden.bs.modal', function () {
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            }
+        });
     });
+
 </script>
+
+<style>
+    .explanation-box {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 8px;
+        border-left: 4px solid #28a745;
+    }
+
+    .explanation-text {
+        font-size: 1.05rem;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    .explanation-text h1,
+    .explanation-text h2,
+    .explanation-text h3,
+    .explanation-text h4,
+    .explanation-text h5,
+    .explanation-text h6 {
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        color: #2c3e50;
+    }
+
+    .explanation-text ul,
+    .explanation-text ol {
+        margin-left: 1.5rem;
+    }
+
+    .explanation-text img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+        margin: 1rem 0;
+    }
+
+    .explanation-text code {
+        background: #e9ecef;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Courier New', monospace;
+    }
+
+    .explanation-text pre {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 1rem;
+        border-radius: 4px;
+        overflow-x: auto;
+    }
+</style>
 {% endblock %}

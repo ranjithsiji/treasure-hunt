@@ -66,6 +66,20 @@
                             placeholder="Enter the correct answer" required>
                         <small class="text-muted">Answer matching is case-insensitive</small>
                     </div>
+
+                    <div class="mb-3">
+                        <label for="explanation" class="admin-form-label">
+                            Explanation (Optional)
+                            <span class="badge bg-info ms-2">Shown after correct answer</span>
+                        </label>
+                        <textarea id="explanation" name="explanation"
+                            class="form-control">{% if question %}{{ question.explanation }}{% endif %}</textarea>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i>
+                            This explanation will be displayed to participants after they answer correctly.
+                            Use it to provide additional context, learning points, or interesting facts.
+                        </small>
+                    </div>
                 </div>
             </div>
 
@@ -228,7 +242,7 @@
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote.min.js"></script>
 <script>
     $(document).ready(function () {
-        // Initialize Summernote
+        // Initialize Summernote for Question Text
         $('#question_text').summernote({
             height: 300,
             minHeight: 200,
@@ -247,6 +261,24 @@
             ],
             fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana'],
             fontSizes: ['8', '9', '10', '11', '12', '14', '16', '18', '20', '24', '28', '32', '36']
+        });
+
+        // Initialize Summernote for Explanation
+        $('#explanation').summernote({
+            height: 200,
+            minHeight: 150,
+            maxHeight: 400,
+            placeholder: 'Enter an explanation that will be shown after participants answer correctly (optional)...',
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'italic', 'underline', 'clear']],
+                ['fontname', ['fontname']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link', 'picture']],
+                ['view', ['codeview']]
+            ],
+            fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana']
         });
 
         // Media file management
