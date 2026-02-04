@@ -175,11 +175,14 @@
                         <li>Files are displayed in order added</li>
                     </ul>
                     <hr>
-                    <h6>HTML Editor:</h6>
+                    <h6>Summernote Editor:</h6>
                     <ul class="small">
-                        <li>Format text with bold, italic, colors</li>
-                        <li>Add lists, tables, links</li>
-                        <li>Insert code blocks</li>
+                        <li>Rich text formatting (bold, italic, underline)</li>
+                        <li>Font styles, sizes, and colors</li>
+                        <li>Lists, tables, and links</li>
+                        <li>Insert images and videos inline</li>
+                        <li>Code view for HTML editing</li>
+                        <li>Fullscreen mode available</li>
                     </ul>
                 </div>
             </div>
@@ -189,6 +192,8 @@
 {% endblock %}
 
 {% block extra_css %}
+<!-- Summernote CSS -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote.min.css" rel="stylesheet">
 <style>
     .media-item {
         border: 2px dashed #dee2e6;
@@ -206,30 +211,42 @@
     .remove-media-btn {
         cursor: pointer;
     }
+
+    .note-editor.note-frame {
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+    }
+
+    .note-editor.note-frame .note-editing-area .note-editable {
+        min-height: 300px;
+    }
 </style>
 {% endblock %}
 
 {% block extra_js %}
-<!-- TinyMCE Editor -->
-<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<!-- Summernote JS -->
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote.min.js"></script>
 <script>
     $(document).ready(function () {
-        // Initialize TinyMCE
-        tinymce.init({
-            selector: '#question_text',
-            height: 400,
-            menubar: false,
-            plugins: [
-                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+        // Initialize Summernote
+        $('#question_text').summernote({
+            height: 300,
+            minHeight: 200,
+            maxHeight: 500,
+            placeholder: 'Enter your question text here. You can use formatting, add images, links, and more...',
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'italic', 'underline', 'clear']],
+                ['fontname', ['fontname']],
+                ['fontsize', ['fontsize']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['table', ['table']],
+                ['insert', ['link', 'picture', 'video']],
+                ['view', ['fullscreen', 'codeview', 'help']]
             ],
-            toolbar: 'undo redo | blocks | ' +
-                'bold italic forecolor backcolor | alignleft aligncenter ' +
-                'alignright alignjustify | bullist numlist outdent indent | ' +
-                'removeformat | code | help',
-            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-            branding: false
+            fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana'],
+            fontSizes: ['8', '9', '10', '11', '12', '14', '16', '18', '20', '24', '28', '32', '36']
         });
 
         // Media file management
@@ -286,13 +303,18 @@
 
         // Form validation
         $('#questionForm').on('submit', function (e) {
-            // Update TinyMCE content
-            tinymce.triggerSave();
+            // Get Summernote content
+            const questionText = $('#question_text').summernote('code');
 
-            const questionText = $('#question_text').val().trim();
-            if (!questionText) {
+            // Check if content is empty (only tags, no actual content)
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = questionText;
+            const textContent = tempDiv.textContent || tempDiv.innerText || '';
+
+            if (!textContent.trim()) {
                 e.preventDefault();
                 alert('Please enter question text');
+                $('#question_text').summernote('focus');
                 return false;
             }
         });
