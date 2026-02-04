@@ -1,0 +1,447 @@
+/* Admin Panel Styles */
+
+.admin-body {
+    background: #f8f9fa;
+    overflow-x: hidden;
+}
+
+/* Top Navbar */
+.navbar.fixed-top {
+    z-index: 1030;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#sidebarToggle {
+    border: none;
+    background: transparent;
+    font-size: 1.5rem;
+    padding: 0.25rem 0.5rem;
+}
+
+#sidebarToggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+}
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    background: linear-gradient(180deg, #2c3e50 0%, #34495e 100%);
+    color: white;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transition: all 0.3s ease;
+    z-index: 1020;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar.collapsed {
+    margin-left: -280px;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Sidebar Header */
+.sidebar-header {
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-header h4 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+/* Sidebar Menu */
+.sidebar-menu {
+    padding: 15px 0;
+}
+
+.sidebar-section-title {
+    padding: 15px 20px 10px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 600;
+}
+
+.sidebar-divider {
+    margin: 15px 20px;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Sidebar Items */
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-left-color: #3498db;
+}
+
+.sidebar-item.active {
+    background: rgba(52, 152, 219, 0.2);
+    color: white;
+    border-left-color: #3498db;
+}
+
+.sidebar-item i {
+    font-size: 1.1rem;
+    width: 25px;
+    margin-right: 10px;
+}
+
+.sidebar-item span {
+    flex: 1;
+}
+
+/* Sidebar Submenu */
+.sidebar-submenu {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.sidebar-subitem {
+    display: block;
+    padding: 10px 20px 10px 55px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-subitem:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-left-color: #3498db;
+}
+
+.sidebar-subitem i {
+    margin-right: 8px;
+    font-size: 0.9rem;
+}
+
+.sidebar-subitem.text-muted {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.sidebar-subitem small {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 280px;
+    margin-top: 56px;
+    padding: 30px;
+    min-height: calc(100vh - 56px);
+    transition: all 0.3s ease;
+}
+
+.main-content.expanded {
+    margin-left: 0;
+}
+
+/* Admin Cards */
+.admin-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+}
+
+.admin-card:hover {
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+.admin-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 15px 15px 0 0;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.admin-card-body {
+    padding: 25px;
+}
+
+/* Stats Cards */
+.stat-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.stat-primary {
+    border-left-color: #667eea;
+}
+
+.stat-card.stat-success {
+    border-left-color: #28a745;
+}
+
+.stat-card.stat-warning {
+    border-left-color: #ffc107;
+}
+
+.stat-card.stat-danger {
+    border-left-color: #dc3545;
+}
+
+.stat-card.stat-info {
+    border-left-color: #17a2b8;
+}
+
+.stat-card-icon {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.8;
+}
+
+.stat-card-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.stat-card-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Page Header */
+.page-header {
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.page-header h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.page-header .breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+}
+
+/* Action Buttons */
+.action-btn-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Tables */
+.admin-table {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.admin-table thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.admin-table thead th {
+    padding: 15px;
+    font-weight: 600;
+    border: none;
+}
+
+.admin-table tbody td {
+    padding: 15px;
+    vertical-align: middle;
+}
+
+.admin-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.admin-table tbody tr:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        margin-left: -280px;
+    }
+
+    .sidebar.show {
+        margin-left: 0;
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .stat-card-value {
+        font-size: 2rem;
+    }
+
+    .page-header h1 {
+        font-size: 1.5rem;
+    }
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Badge Styles */
+.badge-custom {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+/* Form Styles */
+.admin-form-group {
+    margin-bottom: 20px;
+}
+
+.admin-form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.admin-form-control {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+}
+
+.admin-form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Alert Styles */
+.admin-alert {
+    border-radius: 10px;
+    border: none;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+}
+
+.admin-alert i {
+    margin-right: 10px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    margin-bottom: 25px;
+}

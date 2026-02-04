@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel - Treasure Hunt{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="admin-body">
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container-fluid">
+            <button class="btn btn-primary" id="sidebarToggle">
+                <i class="bi bi-list"></i>
+            </button>
+            <a class="navbar-brand ms-3" href="{{ url_for('admin.dashboard') }}">
+                <i class="bi bi-trophy-fill"></i> Treasure Hunt - Admin Panel
+            </a>
+            <div class="ms-auto d-flex align-items-center">
+                <span class="text-white me-3">
+                    <i class="bi bi-person-circle"></i> {{ current_user.username }}
+                </span>
+                <a href="{{ url_for('game.scoreboard') }}" class="btn btn-outline-light btn-sm me-2">
+                    <i class="bi bi-bar-chart-fill"></i> Scoreboard
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4><i class="bi bi-speedometer2"></i> Admin Menu</h4>
+        </div>
+
+        <div class="sidebar-menu">
+            <!-- Dashboard -->
+            <a href="{{ url_for('admin.dashboard') }}"
+                class="sidebar-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- Game Configuration -->
+            <div class="sidebar-item-group">
+                <a href="#gameConfigSubmenu" class="sidebar-item" data-bs-toggle="collapse">
+                    <i class="bi bi-gear-fill"></i>
+                    <span>Game Configuration</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse sidebar-submenu" id="gameConfigSubmenu">
+                    <a href="{{ url_for('admin.initialize_game') }}" class="sidebar-subitem">
+                        <i class="bi bi-plus-circle"></i> Initialize Game
+                    </a>
+                    <a href="{{ url_for('admin.start_game') }}" class="sidebar-subitem">
+                        <i class="bi bi-play-fill"></i> Start Game
+                    </a>
+                </div>
+            </div>
+
+            <!-- Level Management -->
+            <div class="sidebar-item-group">
+                <a href="#levelSubmenu" class="sidebar-item" data-bs-toggle="collapse">
+                    <i class="bi bi-layers-fill"></i>
+                    <span>Level Management</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse sidebar-submenu" id="levelSubmenu">
+                    <a href="{{ url_for('admin.manage_levels') }}" class="sidebar-subitem">
+                        <i class="bi bi-list-ul"></i> View All Levels
+                    </a>
+                    {% if game_config %}
+                    {% for level in range(1, game_config.num_levels + 1) %}
+                    <a href="{{ url_for('admin.start_level', level_number=level) }}" class="sidebar-subitem">
+                        <i class="bi bi-play-circle"></i> Start Level {{ level }}
+                    </a>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Question Management -->
+            <div class="sidebar-item-group">
+                <a href="#questionSubmenu" class="sidebar-item" data-bs-toggle="collapse">
+                    <i class="bi bi-question-circle-fill"></i>
+                    <span>Questions & Clues</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse sidebar-submenu" id="questionSubmenu">
+                    <a href="{{ url_for('admin.manage_levels') }}" class="sidebar-subitem">
+                        <i class="bi bi-card-list"></i> Manage Questions
+                    </a>
+                    <a href="#" class="sidebar-subitem text-muted">
+                        <i class="bi bi-lightbulb"></i> Manage Clues
+                        <small class="d-block">Via Questions</small>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Team Management -->
+            <div class="sidebar-item-group">
+                <a href="#teamSubmenu" class="sidebar-item" data-bs-toggle="collapse">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Team Management</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse sidebar-submenu" id="teamSubmenu">
+                    <a href="{{ url_for('admin.manage_teams') }}" class="sidebar-subitem">
+                        <i class="bi bi-list-ul"></i> View All Teams
+                    </a>
+                    <a href="{{ url_for('admin.manage_teams') }}#create" class="sidebar-subitem">
+                        <i class="bi bi-plus-circle"></i> Create Team
+                    </a>
+                </div>
+            </div>
+
+            <!-- User Management -->
+            <div class="sidebar-item-group">
+                <a href="#userSubmenu" class="sidebar-item" data-bs-toggle="collapse">
+                    <i class="bi bi-person-fill"></i>
+                    <span>User Management</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse sidebar-submenu" id="userSubmenu">
+                    <a href="{{ url_for('admin.manage_users') }}" class="sidebar-subitem">
+                        <i class="bi bi-list-ul"></i> View All Users
+                    </a>
+                    <a href="{{ url_for('admin.manage_users') }}#assign" class="sidebar-subitem">
+                        <i class="bi bi-person-plus"></i> Assign to Teams
+                    </a>
+                </div>
+            </div>
+
+            <!-- Reports & Analytics -->
+            <div class="sidebar-item-group">
+                <a href="#reportsSubmenu" class="sidebar-item" data-bs-toggle="collapse">
+                    <i class="bi bi-bar-chart-fill"></i>
+                    <span>Reports & Analytics</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse sidebar-submenu" id="reportsSubmenu">
+                    <a href="{{ url_for('game.scoreboard') }}" class="sidebar-subitem">
+                        <i class="bi bi-trophy"></i> Scoreboard
+                    </a>
+                    <a href="{{ url_for('admin.dashboard') }}#stats" class="sidebar-subitem">
+                        <i class="bi bi-graph-up"></i> Game Statistics
+                    </a>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Quick Actions -->
+            <div class="sidebar-section-title">Quick Actions</div>
+
+            <a href="{{ url_for('public.home') }}" class="sidebar-item">
+                <i class="bi bi-house-fill"></i>
+                <span>View Public Site</span>
+            </a>
+
+            <a href="{{ url_for('auth.logout') }}" class="sidebar-item">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+            <small class="text-muted">
+                <i class="bi bi-info-circle"></i> v1.0.0
+            </small>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Flash Messages -->
+        <div class="container-fluid mt-3">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Page Content -->
+        <div class="container-fluid">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>
