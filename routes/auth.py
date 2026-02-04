@@ -19,6 +19,10 @@ def login():
         user = User.query.filter_by(username=username).first()
         
         if user and user.check_password(password):
+            if not user.is_active:
+                flash('Your account has been deactivated. Please contact an administrator.', 'warning')
+                return render_template('login.html')
+                
             login_user(user)
             next_page = request.args.get('next')
             

@@ -496,3 +496,38 @@ def delete_user(user_id):
     
     flash(f'User {username} deleted successfully.', 'success')
     return redirect(url_for('admin.manage_users'))
+
+@admin_bp.route('/reset-password/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def reset_password(user_id):
+    user = User.query.get_or_404(user_id)
+    new_password = request.form.get('new_password')
+    
+    if not new_password or len(new_password) < 6:
+        flash('Password must be at least 6 characters long.', 'danger')
+        return redirect(url_for('admin.manage_users'))
+        
+    user.set_password(new_password)
+    db.session.commit()
+    
+    flash(f'Password for {user.username} has been reset.', 'success')
+    return redirect(url_for('admin.manage_users'))
+
+@admin_bp.route('/toggle-user-status/<int:user_id>', methods=['POST'])
+@login_required
+@admin_required
+def toggle_user_status(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    # Prevent deactivating yourself
+    if user.id == current_user.id:
+        flash('You cannot deactivate your own account.', 'danger')
+        return redirect(url_for('admin.manage_users'))
+        
+    user.is_active = not user.is_active
+    db.session.commit()
+    
+    status = "activated" if user.is_active else "deactivated"
+    flash(f'User {user.username} has been {status}.', 'success')
+    return redirect(url_for('admin.manage_users'))

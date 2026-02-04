@@ -3,71 +3,310 @@
 {% block title %}Manage Users - Treasure Hunt{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <h2><i class="bi bi-person-fill"></i> Manage Users</h2>
-
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-list-ul"></i> All Users</h5>
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="bi bi-people-fill"></i> Manage Users</h1>
+            <p class="text-muted">User accounts, team assignments, and access control</p>
         </div>
-        <div class="card-body">
-            {% if users %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Current Team</th>
-                            <th>Assign Team</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td><strong>{{ user.username }}</strong></td>
-                            <td>{{ user.email }}</td>
-                            <td>
-                                {% if user.team %}
-                                <span class="badge bg-success">{{ user.team.name }}</span>
-                                {% else %}
-                                <span class="badge bg-secondary">No Team</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <form method="POST" action="{{ url_for('admin.assign_team', user_id=user.id) }}"
-                                    class="d-flex gap-2">
-                                    <select name="team_id" class="form-select form-select-sm" style="width: auto;">
-                                        <option value="">No Team</option>
-                                        {% for team in teams %}
-                                        <option value="{{ team.id }}" {% if user.team and user.team.id==team.id
-                                            %}selected{% endif %}>
-                                            {{ team.name }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-primary">
-                                        <i class="bi bi-check"></i> Assign
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle"></i> No users registered yet.
-            </div>
-            {% endif %}
+        <div>
+            <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <i class="bi bi-person-plus-fill"></i> Add New User
+            </button>
         </div>
-    </div>
-
-    <div class="mt-3">
-        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Dashboard
-        </a>
     </div>
 </div>
+
+<div class="admin-card">
+    <div class="admin-card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <i class="bi bi-list-ul"></i> All Users
+            </div>
+            <div>
+                <span class="badge bg-primary badge-custom">{{ users|length }} Users</span>
+            </div>
+        </div>
+    </div>
+    <div class="admin-card-body">
+        {% if users %}
+        <div class="table-responsive">
+            <table class="admin-table table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Current Team</th>
+                        <th>Assign Team</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar me-2 bg-light text-primary rounded-circle d-flex align-items-center justify-content-center"
+                                    style="width: 32px; height: 32px;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div>
+                                    <strong>{{ user.username }}</strong>
+                                    <div class="small text-muted">{{ user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if user.is_admin %}
+                            <span class="badge bg-danger badge-custom"><i class="bi bi-shield-fill"></i> Admin</span>
+                            {% else %}
+                            <span class="badge bg-info badge-custom"><i class="bi bi-person"></i> Player</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.is_active %}
+                            <span class="badge bg-success badge-custom"><i class="bi bi-check-circle-fill"></i>
+                                Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary badge-custom"><i class="bi bi-x-circle"></i> Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.team %}
+                            <span class="badge bg-success badge-custom">{{ user.team.name }}</span>
+                            {% else %}
+                            <span class="badge bg-secondary badge-custom">No Team</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not user.is_admin %}
+                            <form method="POST" action="{{ url_for('admin.assign_team', user_id=user.id) }}"
+                                class="d-flex gap-2">
+                                <select name="team_id" class="form-select form-select-sm" style="width: auto;">
+                                    <option value="">No Team</option>
+                                    {% for team in teams %}
+                                    <option value="{{ team.id }}" {% if user.team and user.team.id==team.id %}selected{%
+                                        endif %}>
+                                        {{ team.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <!-- Reset Password Toggle -->
+                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                    data-bs-target="#resetPasswordModal" data-user-id="{{ user.id }}"
+                                    data-username="{{ user.username }}" title="Reset Password">
+                                    <i class="bi bi-key-fill"></i>
+                                </button>
+
+                                <!-- Activate/Deactivate Toggle -->
+                                {% if user.id != current_user.id %}
+                                <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=user.id) }}"
+                                    style="display:inline;">
+                                    <button type="submit"
+                                        class="btn btn-sm {{ 'btn-secondary' if user.is_active else 'btn-success' }}"
+                                        title="{{ 'Deactivate' if user.is_active else 'Activate' }} User">
+                                        <i
+                                            class="bi {{ 'bi-person-x-fill' if user.is_active else 'bi-person-check-fill' }}"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+
+                                <!-- Delete Toggle -->
+                                {% if user.id != current_user.id %}
+                                <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
+                                    style="display: inline;"
+                                    onsubmit="return confirm('Are you sure you want to delete user {{ user.username }}?');">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Delete User">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-people"></i>
+            <h3>No Users Yet</h3>
+            <p>Start by adding your first user.</p>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <i class="bi bi-person-plus-fill"></i> Add First User
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-3">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('admin.add_user') }}" id="addUserForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addUserModalLabel">
+                        <i class="bi bi-person-plus-fill"></i> Add New User
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username *</label>
+                        <input type="text" class="form-control" id="username" name="username" required
+                            placeholder="Enter username">
+                        <small class="text-muted">Must be unique</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email *</label>
+                        <input type="email" class="form-control" id="email" name="email" required
+                            placeholder="user@example.com">
+                        <small class="text-muted">Must be unique</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password *</label>
+                        <input type="password" class="form-control" id="password" name="password" required
+                            placeholder="Enter password" minlength="6">
+                        <small class="text-muted">Minimum 6 characters</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm Password *</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                            required placeholder="Re-enter password" minlength="6">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="team_id" class="form-label">Assign to Team (Optional)</label>
+                        <select class="form-select" id="team_id" name="team_id">
+                            <option value="">No Team</option>
+                            {% for team in teams %}
+                            <option value="{{ team.id }}">{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_admin" name="is_admin" value="1">
+                        <label class="form-check-label" for="is_admin">
+                            <i class="bi bi-shield-fill text-danger"></i> Make this user an admin
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-person-plus-fill"></i> Create User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="" id="resetPasswordForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="resetPasswordModalLabel">
+                        <i class="bi bi-key-fill"></i> Reset Password
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Resetting password for user: <strong id="reset-username-display"></strong></p>
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label">New Password *</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" required
+                            placeholder="Enter new password" minlength="6">
+                        <small class="text-muted">Minimum 6 characters</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_new_password" class="form-label">Confirm New Password *</label>
+                        <input type="password" class="form-control" id="confirm_new_password"
+                            name="confirm_new_password" required placeholder="Re-enter new password" minlength="6">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-key-fill"></i> Reset Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function () {
+        // Password confirmation validation for Add User
+        $('#addUserForm').on('submit', function (e) {
+            const password = $('#password').val();
+            const confirmPassword = $('#confirm_password').val();
+
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Passwords do not match!');
+                $('#confirm_password').focus();
+                return false;
+            }
+        });
+
+        // Reset Password Modal Setup
+        const resetPasswordModal = document.getElementById('resetPasswordModal');
+        if (resetPasswordModal) {
+            resetPasswordModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const userId = button.getAttribute('data-user-id');
+                const username = button.getAttribute('data-username');
+
+                const form = resetPasswordModal.querySelector('#resetPasswordForm');
+                const usernameDisplay = resetPasswordModal.querySelector('#reset-username-display');
+
+                form.action = '/admin/reset-password/' + userId;
+                usernameDisplay.textContent = username;
+            });
+        }
+
+        // Password confirmation validation for Reset Password
+        $('#resetPasswordForm').on('submit', function (e) {
+            const password = $('#new_password').val();
+            const confirmPassword = $('#confirm_new_password').val();
+
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Passwords do not match!');
+                $('#confirm_new_password').focus();
+                return false;
+            }
+        });
+    });
+</script>
 {% endblock %}
