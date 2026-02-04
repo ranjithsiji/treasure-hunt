@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Levels - Treasure Hunt{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2><i class="bi bi-layers-fill"></i> Manage Levels</h2>
+
+    <div class="card">
+        <div class="card-body">
+            {% if levels %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Level</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Questions</th>
+                            <th>Final Level</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for level in levels %}
+                        <tr>
+                            <td><span class="badge bg-primary level-badge">{{ level.level_number }}</span></td>
+                            <td><strong>{{ level.name }}</strong></td>
+                            <td>
+                                {% if level.is_active %}
+                                <span class="badge bg-success">Active</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ level.questions|length }} questions</td>
+                            <td>
+                                {% if level.is_final %}
+                                <span class="badge bg-warning">Yes</span>
+                                {% else %}
+                                <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('admin.manage_questions', level_id=level.id) }}"
+                                    class="btn btn-sm btn-primary">
+                                    <i class="bi bi-question-circle"></i> Manage Questions
+                                </a>
+                                {% if not level.is_active %}
+                                <a href="{{ url_for('admin.start_level', level_number=level.level_number) }}"
+                                    class="btn btn-sm btn-success">
+                                    <i class="bi bi-play-fill"></i> Start
+                                </a>
+                                {% else %}
+                                <a href="{{ url_for('admin.stop_level', level_number=level.level_number) }}"
+                                    class="btn btn-sm btn-danger">
+                                    <i class="bi bi-stop-fill"></i> Stop
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No levels found. Please initialize the game first.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Level Locked - Treasure Hunt{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center p-5">
+                    <i class="bi bi-lock-fill text-warning" style="font-size: 5rem;"></i>
+                    <h2 class="mt-4">Level {{ current_level }} is Locked</h2>
+                    <p class="lead text-muted">This level is currently inactive. Please wait for the administrator to
+                        activate it.</p>
+
+                    <div class="mt-4">
+                        <p><strong>Your Team:</strong> {{ team.name }}</p>
+                        <p><strong>Current Level:</strong> {{ team.current_level }}</p>
+                        <p><strong>Clues Remaining:</strong> <span class="badge bg-warning">{{ team.clues_remaining
+                                }}</span></p>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{{ url_for('game.scoreboard') }}" class="btn btn-info">
+                            <i class="bi bi-bar-chart-fill"></i> View Scoreboard
+                        </a>
+                        <button onclick="location.reload()" class="btn btn-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

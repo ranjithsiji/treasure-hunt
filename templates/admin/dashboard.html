@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Treasure Hunt{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4"><i class="bi bi-speedometer2"></i> Admin Dashboard</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ teams|length }}</h3>
+                <p>Total Teams</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ users|length }}</h3>
+                <p>Total Users</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ levels|length }}</h3>
+                <p>Total Levels</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{% if game_config and game_config.game_started %}Active{% else %}Not Started{% endif %}</h3>
+                <p>Game Status</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="admin-sidebar">
+                <h5 class="mb-3">Quick Actions</h5>
+                <nav class="nav flex-column">
+                    {% if not game_config %}
+                    <a class="nav-link" href="{{ url_for('admin.initialize_game') }}">
+                        <i class="bi bi-gear-fill"></i> Initialize Game
+                    </a>
+                    {% else %}
+                    {% if not game_config.game_started %}
+                    <a class="nav-link" href="{{ url_for('admin.start_game') }}">
+                        <i class="bi bi-play-fill"></i> Start Game
+                    </a>
+                    {% endif %}
+                    {% endif %}
+                    <a class="nav-link" href="{{ url_for('admin.manage_levels') }}">
+                        <i class="bi bi-layers-fill"></i> Manage Levels
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin.manage_teams') }}">
+                        <i class="bi bi-people-fill"></i> Manage Teams
+                    </a>
+                    <a class="nav-link" href="{{ url_for('admin.manage_users') }}">
+                        <i class="bi bi-person-fill"></i> Manage Users
+                    </a>
+                    <a class="nav-link" href="{{ url_for('game.scoreboard') }}">
+                        <i class="bi bi-bar-chart-fill"></i> View Scoreboard
+                    </a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            {% if game_config %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gear-fill"></i> Game Configuration</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Number of Teams:</strong> {{ game_config.num_teams }}</p>
+                            <p><strong>Number of Levels:</strong> {{ game_config.num_levels }}</p>
+                            <p><strong>Questions per Level:</strong> {{ game_config.questions_per_level }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Teams Passing per Level:</strong> {{ game_config.teams_passing_per_level }}</p>
+                            <p><strong>Clues per Team:</strong> {{ game_config.clues_per_team }}</p>
+                            <p><strong>Current Level:</strong> {{ game_config.current_level }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-layers-fill"></i> Level Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Level</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Questions</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for level in levels %}
+                                <tr>
+                                    <td><span class="badge bg-primary">{{ level.level_number }}</span></td>
+                                    <td>{{ level.name }}</td>
+                                    <td>
+                                        {% if level.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                        {% if level.is_final %}
+                                        <span class="badge bg-warning">Final</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ level.questions|length }}</td>
+                                    <td>
+                                        <a href="{{ url_for('admin.manage_questions', level_id=level.id) }}"
+                                            class="btn btn-sm btn-info">
+                                            <i class="bi bi-question-circle"></i> Questions
+                                        </a>
+                                        {% if not level.is_active %}
+                                        <a href="{{ url_for('admin.start_level', level_number=level.level_number) }}"
+                                            class="btn btn-sm btn-success">
+                                            <i class="bi bi-play-fill"></i> Start
+                                        </a>
+                                        {% else %}
+                                        <a href="{{ url_for('admin.stop_level', level_number=level.level_number) }}"
+                                            class="btn btn-sm btn-danger">
+                                            <i class="bi bi-stop-fill"></i> Stop
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-people-fill"></i> Teams Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Team Name</th>
+                                    <th>Members</th>
+                                    <th>Current Level</th>
+                                    <th>Current Question</th>
+                                    <th>Clues Remaining</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for team in teams %}
+                                <tr>
+                                    <td><strong>{{ team.name }}</strong></td>
+                                    <td>{{ team.members|length }}</td>
+                                    <td><span class="badge bg-primary">Level {{ team.current_level }}</span></td>
+                                    <td>Question {{ team.current_question }}</td>
+                                    <td><span class="badge bg-warning">{{ team.clues_remaining }}</span></td>
+                                    <td>
+                                        {% if team.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <h4><i class="bi bi-info-circle-fill"></i> Welcome to Admin Dashboard</h4>
+                <p>Please initialize the game to get started.</p>
+                <a href="{{ url_for('admin.initialize_game') }}" class="btn btn-primary">
+                    <i class="bi bi-gear-fill"></i> Initialize Game
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

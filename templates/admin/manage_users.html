@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Treasure Hunt{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2><i class="bi bi-person-fill"></i> Manage Users</h2>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-list-ul"></i> All Users</h5>
+        </div>
+        <div class="card-body">
+            {% if users %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Current Team</th>
+                            <th>Assign Team</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td><strong>{{ user.username }}</strong></td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                {% if user.team %}
+                                <span class="badge bg-success">{{ user.team.name }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">No Team</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <form method="POST" action="{{ url_for('admin.assign_team', user_id=user.id) }}"
+                                    class="d-flex gap-2">
+                                    <select name="team_id" class="form-select form-select-sm" style="width: auto;">
+                                        <option value="">No Team</option>
+                                        {% for team in teams %}
+                                        <option value="{{ team.id }}" {% if user.team and user.team.id==team.id
+                                            %}selected{% endif %}>
+                                            {{ team.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-check"></i> Assign
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> No users registered yet.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

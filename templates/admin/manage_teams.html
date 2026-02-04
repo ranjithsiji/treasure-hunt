@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Teams - Treasure Hunt{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2><i class="bi bi-people-fill"></i> Manage Teams</h2>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-plus-circle-fill"></i> Create New Team</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.create_team') }}">
+                        <div class="mb-3">
+                            <label for="team_name" class="form-label">Team Name</label>
+                            <input type="text" class="form-control" id="team_name" name="team_name" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-plus-circle-fill"></i> Create Team
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Existing Teams</h5>
+                </div>
+                <div class="card-body">
+                    {% if teams %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Team Name</th>
+                                    <th>Members</th>
+                                    <th>Level</th>
+                                    <th>Question</th>
+                                    <th>Clues</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for team in teams %}
+                                <tr>
+                                    <td><strong>{{ team.name }}</strong></td>
+                                    <td>{{ team.members|length }}</td>
+                                    <td><span class="badge bg-primary">{{ team.current_level }}</span></td>
+                                    <td>{{ team.current_question }}</td>
+                                    <td><span class="badge bg-warning">{{ team.clues_remaining }}</span></td>
+                                    <td>
+                                        {% if team.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('admin.delete_team', team_id=team.id) }}"
+                                            style="display: inline;">
+                                            <button type="submit" class="btn btn-sm btn-danger delete-btn">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> No teams created yet. Create your first team using the form.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

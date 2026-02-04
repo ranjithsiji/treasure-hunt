@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}No Team - Treasure Hunt{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center p-5">
+                    <i class="bi bi-people-fill text-warning" style="font-size: 5rem;"></i>
+                    <h2 class="mt-4">You're Not in a Team Yet</h2>
+                    <p class="lead text-muted">You need to join a team before you can start playing the treasure hunt.
+                    </p>
+                    <div class="mt-4">
+                        <a href="{{ url_for('game.join_team') }}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-people-fill"></i> Join a Team
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

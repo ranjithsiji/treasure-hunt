@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Waiting for Game - Treasure Hunt{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center p-5">
+                    <i class="bi bi-hourglass-split text-info" style="font-size: 5rem;"></i>
+                    <h2 class="mt-4">Game Not Started Yet</h2>
+                    <p class="lead text-muted">The treasure hunt hasn't started yet. Please wait for the administrator
+                        to start the game.</p>
+                    <div class="mt-4">
+                        <a href="{{ url_for('game.scoreboard') }}" class="btn btn-info">
+                            <i class="bi bi-bar-chart-fill"></i> View Scoreboard
+                        </a>
+                        <button onclick="location.reload()" class="btn btn-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

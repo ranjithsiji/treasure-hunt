@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Scoreboard - Treasure Hunt{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="text-center mb-4"><i class="bi bi-bar-chart-fill"></i> Scoreboard</h1>
+
+    <div class="card">
+        <div class="card-body">
+            {% if team_stats %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Team Name</th>
+                            <th>Current Level</th>
+                            <th>Questions Completed</th>
+                            <th>Total Time</th>
+                            <th>Clues Remaining</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in team_stats %}
+                        <tr {% if current_user.is_authenticated and current_user.team and
+                            current_user.team.id==stat.team.id %}class="table-primary" {% endif %}>
+                            <td>
+                                <span class="scoreboard-rank">{{ loop.index }}</span>
+                                {% if loop.index == 1 %}
+                                <i class="bi bi-trophy-fill text-warning"></i>
+                                {% elif loop.index == 2 %}
+                                <i class="bi bi-trophy-fill text-secondary"></i>
+                                {% elif loop.index == 3 %}
+                                <i class="bi bi-trophy-fill" style="color: #cd7f32;"></i>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ stat.team.name }}</strong></td>
+                            <td><span class="badge bg-primary level-badge">Level {{ stat.current_level }}</span></td>
+                            <td>{{ stat.completed_questions }}</td>
+                            <td>
+                                {% set hours = stat.total_time // 3600 %}
+                                {% set minutes = (stat.total_time % 3600) // 60 %}
+                                {% set seconds = stat.total_time % 60 %}
+                                {% if hours > 0 %}
+                                {{ hours }}h {{ minutes }}m {{ seconds }}s
+                                {% elif minutes > 0 %}
+                                {{ minutes }}m {{ seconds }}s
+                                {% else %}
+                                {{ seconds }}s
+                                {% endif %}
+                            </td>
+                            <td><span class="badge bg-warning">{{ stat.clues_remaining }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle"></i> No teams have started the game yet.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        {% if current_user.is_authenticated %}
+        {% if current_user.is_admin %}
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        {% else %}
+        <a href="{{ url_for('game.dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Game
+        </a>
+        {% endif %}
+        {% else %}
+        <a href="{{ url_for('public.home') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Home
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
