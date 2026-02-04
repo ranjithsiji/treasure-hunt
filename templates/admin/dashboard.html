@@ -136,6 +136,7 @@
                         <th>Name</th>
                         <th>Status</th>
                         <th>Questions</th>
+                        <th>Teams Passing</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -157,6 +158,14 @@
                         </td>
                         <td>
                             <span class="badge bg-info badge-custom">{{ level.questions|length }} Questions</span>
+                        </td>
+                        <td>
+                            {% if level.is_final %}
+                            <span class="badge bg-dark badge-custom">Final Level</span>
+                            {% else %}
+                            <span class="badge bg-warning badge-custom"><i class="bi bi-people-fill"></i> {{
+                                level.teams_passing }} teams</span>
+                            {% endif %}
                         </td>
                         <td>
                             <div class="action-btn-group">

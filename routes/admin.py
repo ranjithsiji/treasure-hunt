@@ -40,28 +40,35 @@ def initialize_game():
         # Delete existing configuration
         GameConfig.query.delete()
         
+        num_levels = int(request.form.get('num_levels'))
+        
         config = GameConfig(
             num_teams=int(request.form.get('num_teams')),
-            num_levels=int(request.form.get('num_levels')),
+            num_levels=num_levels,
             questions_per_level=int(request.form.get('questions_per_level')),
-            teams_passing_per_level=int(request.form.get('teams_passing_per_level')),
+            teams_passing_per_level=int(request.form.get('teams_passing_per_level')),  # Keep for backward compatibility
             clues_per_team=int(request.form.get('clues_per_team'))
         )
         
         db.session.add(config)
         
-        # Create levels
+        # Create levels with individual teams_passing configuration
         Level.query.delete()
-        for i in range(1, config.num_levels + 1):
+        for i in range(1, num_levels + 1):
+            # Get teams_passing for this specific level from form
+            teams_passing_key = f'teams_passing_level_{i}'
+            teams_passing = int(request.form.get(teams_passing_key, 0))
+            
             level = Level(
                 level_number=i,
                 name=f"Level {i}",
-                is_final=(i == config.num_levels)
+                teams_passing=teams_passing,
+                is_final=(i == num_levels)
             )
             db.session.add(level)
         
         db.session.commit()
-        flash('Game initialized successfully!', 'success')
+        flash('Game initialized successfully with per-level team passing configuration!', 'success')
         return redirect(url_for('admin.dashboard'))
     
     return render_template('admin/initialize_game.html')
@@ -137,7 +144,28 @@ def stop_level(level_number):
 @admin_required
 def manage_levels():
     levels = Level.query.order_by(Level.level_number).all()
-    return render_template('admin/manage_levels.html', levels=levels)
+    game_config = GameConfig.query.first()
+    return render_template('admin/manage_levels.html', levels=levels, game_config=game_config)
+
+@admin_bp.route('/update-level-config/<int:level_id>', methods=['POST'])
+@login_required
+@admin_required
+def update_level_config(level_id):
+    level = Level.query.get_or_404(level_id)
+    
+    # Update teams_passing
+    teams_passing = request.form.get('teams_passing')
+    if teams_passing:
+        level.teams_passing = int(teams_passing)
+    
+    # Update level name if provided
+    level_name = request.form.get('level_name')
+    if level_name:
+        level.name = level_name
+    
+    db.session.commit()
+    flash(f'Level {level.level_number} configuration updated!', 'success')
+    return redirect(url_for('admin.manage_levels'))
 
 @admin_bp.route('/level/<int:level_id>/questions', methods=['GET', 'POST'])
 @login_required

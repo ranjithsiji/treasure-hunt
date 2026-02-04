@@ -60,11 +60,13 @@ class Level(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     level_number = db.Column(db.Integer, nullable=False, unique=True)
     name = db.Column(db.String(100), nullable=False)
+    teams_passing = db.Column(db.Integer, default=0)  # Number of teams that can pass to next level
     is_final = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     questions = db.relationship('Question', back_populates='level', cascade='all, delete-orphan')
+
 
 class Question(db.Model):
     __tablename__ = 'questions'

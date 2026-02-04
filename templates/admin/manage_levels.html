@@ -3,59 +3,147 @@
 {% block title %}Manage Levels - Treasure Hunt{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <h2><i class="bi bi-layers-fill"></i> Manage Levels</h2>
+<div class="page-header">
+    <h1><i class="bi bi-layers-fill"></i> Manage Levels</h1>
+    <p class="text-muted">Configure level settings and teams passing criteria</p>
+</div>
 
-    <div class="card">
-        <div class="card-body">
-            {% if levels %}
+<div class="admin-card">
+    <div class="admin-card-header">
+        <i class="bi bi-layers-fill"></i> Level Configuration
+    </div>
+    <div class="admin-card-body">
+        {% if levels %}
+        <div class="row">
+            {% for level in levels %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div
+                    class="card h-100 {% if level.is_active %}border-success{% elif level.is_final %}border-warning{% else %}border-secondary{% endif %}">
+                    <div
+                        class="card-header {% if level.is_active %}bg-success text-white{% elif level.is_final %}bg-warning{% else %}bg-light{% endif %}">
+                        <h5 class="mb-0">
+                            <i class="bi bi-{% if level.is_final %}star-fill{% else %}circle-fill{% endif %}"></i>
+                            Level {{ level.level_number }}
+                            {% if level.is_active %}
+                            <span class="badge bg-light text-success float-end">Active</span>
+                            {% endif %}
+                            {% if level.is_final %}
+                            <span class="badge bg-dark float-end">Final</span>
+                            {% endif %}
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('admin.update_level_config', level_id=level.id) }}"
+                            class="level-config-form">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Level Name</label>
+                                <input type="text" class="form-control" name="level_name" value="{{ level.name }}"
+                                    required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="bi bi-people-fill"></i> Teams Passing to Next Level
+                                </label>
+                                <input type="number" class="form-control" name="teams_passing"
+                                    value="{{ level.teams_passing }}" min="0" {% if level.is_final %}readonly{% endif %}
+                                    required>
+                                <small class="text-muted">
+                                    {% if level.is_final %}
+                                    Final level - no teams pass beyond this
+                                    {% else %}
+                                    Number of teams advancing to Level {{ level.level_number + 1 }}
+                                    {% endif %}
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Statistics</label>
+                                <ul class="list-unstyled mb-0">
+                                    <li><i class="bi bi-question-circle text-info"></i> <strong>{{
+                                            level.questions|length }}</strong> questions</li>
+                                    <li><i class="bi bi-trophy text-warning"></i>
+                                        {% if level.is_final %}
+                                        <strong>Final Level</strong>
+                                        {% else %}
+                                        <strong>{{ level.teams_passing }}</strong> teams pass
+                                        {% endif %}
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-save"></i> Update Configuration
+                                </button>
+                                <a href="{{ url_for('admin.manage_questions', level_id=level.id) }}"
+                                    class="btn btn-info btn-sm">
+                                    <i class="bi bi-question-circle"></i> Manage Questions
+                                </a>
+                                {% if not level.is_active %}
+                                <a href="{{ url_for('admin.start_level', level_number=level.level_number) }}"
+                                    class="btn btn-success btn-sm">
+                                    <i class="bi bi-play-fill"></i> Start Level
+                                </a>
+                                {% else %}
+                                <a href="{{ url_for('admin.stop_level', level_number=level.level_number) }}"
+                                    class="btn btn-danger btn-sm">
+                                    <i class="bi bi-stop-fill"></i> Stop Level
+                                </a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Summary Table -->
+        <div class="mt-4">
+            <h5><i class="bi bi-table"></i> Level Summary</h5>
             <div class="table-responsive">
-                <table class="table table-hover">
+                <table class="admin-table table">
                     <thead>
                         <tr>
                             <th>Level</th>
                             <th>Name</th>
                             <th>Status</th>
                             <th>Questions</th>
-                            <th>Final Level</th>
-                            <th>Actions</th>
+                            <th>Teams Passing</th>
+                            <th>Type</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for level in levels %}
                         <tr>
-                            <td><span class="badge bg-primary level-badge">{{ level.level_number }}</span></td>
+                            <td><span class="badge bg-primary badge-custom">Level {{ level.level_number }}</span></td>
                             <td><strong>{{ level.name }}</strong></td>
                             <td>
                                 {% if level.is_active %}
-                                <span class="badge bg-success">Active</span>
+                                <span class="badge bg-success badge-custom"><i class="bi bi-check-circle"></i>
+                                    Active</span>
                                 {% else %}
-                                <span class="badge bg-secondary">Inactive</span>
+                                <span class="badge bg-secondary badge-custom"><i class="bi bi-pause-circle"></i>
+                                    Inactive</span>
                                 {% endif %}
                             </td>
-                            <td>{{ level.questions|length }} questions</td>
+                            <td><span class="badge bg-info badge-custom">{{ level.questions|length }} Questions</span>
+                            </td>
                             <td>
                                 {% if level.is_final %}
-                                <span class="badge bg-warning">Yes</span>
+                                <span class="badge bg-dark badge-custom">Final Level</span>
                                 {% else %}
-                                <span class="badge bg-secondary">No</span>
+                                <span class="badge bg-warning badge-custom"><i class="bi bi-people-fill"></i> {{
+                                    level.teams_passing }} teams</span>
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{{ url_for('admin.manage_questions', level_id=level.id) }}"
-                                    class="btn btn-sm btn-primary">
-                                    <i class="bi bi-question-circle"></i> Manage Questions
-                                </a>
-                                {% if not level.is_active %}
-                                <a href="{{ url_for('admin.start_level', level_number=level.level_number) }}"
-                                    class="btn btn-sm btn-success">
-                                    <i class="bi bi-play-fill"></i> Start
-                                </a>
+                                {% if level.is_final %}
+                                <span class="badge bg-warning badge-custom"><i class="bi bi-star-fill"></i> Final</span>
                                 {% else %}
-                                <a href="{{ url_for('admin.stop_level', level_number=level.level_number) }}"
-                                    class="btn btn-sm btn-danger">
-                                    <i class="bi bi-stop-fill"></i> Stop
-                                </a>
+                                <span class="badge bg-primary badge-custom"><i class="bi bi-circle-fill"></i>
+                                    Regular</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -63,18 +151,40 @@
                     </tbody>
                 </table>
             </div>
-            {% else %}
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle"></i> No levels found. Please initialize the game first.
-            </div>
-            {% endif %}
         </div>
-    </div>
 
-    <div class="mt-3">
-        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Dashboard
-        </a>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-layers"></i>
+            <h3>No Levels Found</h3>
+            <p>Please initialize the game first to create levels.</p>
+            <a href="{{ url_for('admin.initialize_game') }}" class="btn btn-primary">
+                <i class="bi bi-gear-fill"></i> Initialize Game
+            </a>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+<div class="mt-3">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function () {
+        // Prevent form submission if teams_passing is invalid
+        $('.level-config-form').on('submit', function (e) {
+            const teamsPassing = parseInt($(this).find('input[name="teams_passing"]').val());
+            if (teamsPassing < 0) {
+                e.preventDefault();
+                alert('Teams passing cannot be negative');
+                return false;
+            }
+        });
+    });
+</script>
 {% endblock %}

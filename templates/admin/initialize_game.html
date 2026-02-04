@@ -3,67 +3,176 @@
 {% block title %}Initialize Game - Treasure Hunt{% endblock %}
 
 {% block content %}
-<div class="container my-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3><i class="bi bi-gear-fill"></i> Initialize Treasure Hunt Game</h3>
-                </div>
-                <div class="card-body p-4">
-                    <form method="POST" action="{{ url_for('admin.initialize_game') }}">
-                        <div class="mb-3">
-                            <label for="num_teams" class="form-label">Number of Teams</label>
-                            <input type="number" class="form-control" id="num_teams" name="num_teams" min="1" required>
+<div class="page-header">
+    <h1><i class="bi bi-gear-fill"></i> Initialize Treasure Hunt Game</h1>
+    <p class="text-muted">Configure your treasure hunt game settings</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <i class="bi bi-gear-fill"></i> Game Configuration
+            </div>
+            <div class="admin-card-body">
+                <form method="POST" action="{{ url_for('admin.initialize_game') }}" id="initGameForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="num_teams" class="admin-form-label">Number of Teams</label>
+                            <input type="number" class="form-control admin-form-control" id="num_teams" name="num_teams"
+                                min="1" value="10" required>
                             <small class="text-muted">Maximum number of teams that can participate</small>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="num_levels" class="form-label">Number of Levels</label>
-                            <input type="number" class="form-control" id="num_levels" name="num_levels" min="1"
-                                required>
+                        <div class="col-md-6 mb-3">
+                            <label for="num_levels" class="admin-form-label">Number of Levels</label>
+                            <input type="number" class="form-control admin-form-control" id="num_levels"
+                                name="num_levels" min="1" max="20" value="3" required>
                             <small class="text-muted">Total levels in the treasure hunt</small>
                         </div>
+                    </div>
 
-                        <div class="mb-3">
-                            <label for="questions_per_level" class="form-label">Questions per Level</label>
-                            <input type="number" class="form-control" id="questions_per_level"
-                                name="questions_per_level" min="1" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="questions_per_level" class="admin-form-label">Questions per Level</label>
+                            <input type="number" class="form-control admin-form-control" id="questions_per_level"
+                                name="questions_per_level" min="1" value="5" required>
                             <small class="text-muted">Number of questions in each level</small>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="teams_passing_per_level" class="form-label">Teams Passing per Level</label>
-                            <input type="number" class="form-control" id="teams_passing_per_level"
-                                name="teams_passing_per_level" min="1" required>
-                            <small class="text-muted">Number of teams that advance to next level</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="clues_per_team" class="form-label">Clues per Team</label>
-                            <input type="number" class="form-control" id="clues_per_team" name="clues_per_team" min="0"
-                                required>
+                        <div class="col-md-6 mb-3">
+                            <label for="clues_per_team" class="admin-form-label">Clues per Team</label>
+                            <input type="number" class="form-control admin-form-control" id="clues_per_team"
+                                name="clues_per_team" min="0" value="10" required>
                             <small class="text-muted">Total clues available for each team</small>
                         </div>
+                    </div>
 
-                        <div class="alert alert-warning">
-                            <i class="bi bi-exclamation-triangle-fill"></i>
-                            <strong>Warning:</strong> Initializing the game will reset all existing configuration and
-                            levels.
-                        </div>
+                    <div class="mb-3">
+                        <label for="teams_passing_per_level" class="admin-form-label">Default Teams Passing per
+                            Level</label>
+                        <input type="number" class="form-control admin-form-control" id="teams_passing_per_level"
+                            name="teams_passing_per_level" min="1" value="5" required>
+                        <small class="text-muted">Default number of teams that advance (can be customized per level
+                            below)</small>
+                    </div>
 
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-gear-fill"></i> Initialize Game
-                            </button>
-                            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Back to Dashboard
-                            </a>
+                    <hr class="my-4">
+
+                    <!-- Dynamic Level Configuration -->
+                    <div id="levelConfigSection" style="display: none;">
+                        <h5 class="mb-3"><i class="bi bi-layers-fill"></i> Per-Level Configuration</h5>
+                        <p class="text-muted">Configure how many teams can pass to the next level for each level</p>
+
+                        <div id="levelConfigContainer" class="row">
+                            <!-- Dynamic level config fields will be inserted here -->
                         </div>
-                    </form>
-                </div>
+                    </div>
+
+                    <div class="alert admin-alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <strong>Warning:</strong> Initializing the game will reset all existing configuration and
+                        levels.
+                    </div>
+
+                    <div class="action-btn-group">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-gear-fill"></i> Initialize Game
+                        </button>
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function () {
+        // Generate level configuration fields when num_levels changes
+        function generateLevelConfig() {
+            const numLevels = parseInt($('#num_levels').val());
+            const defaultTeamsPassing = parseInt($('#teams_passing_per_level').val()) || 5;
+            const container = $('#levelConfigContainer');
+
+            if (numLevels > 0) {
+                $('#levelConfigSection').show();
+                container.empty();
+
+                for (let i = 1; i <= numLevels; i++) {
+                    const isFinal = (i === numLevels);
+                    const html = `
+                    <div class="col-md-4 mb-3">
+                        <div class="card border-${isFinal ? 'warning' : 'primary'}">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="bi bi-${isFinal ? 'star-fill' : 'circle-fill'}"></i> 
+                                    Level ${i}
+                                    ${isFinal ? '<span class="badge bg-warning ms-2">Final</span>' : ''}
+                                </h6>
+                                <label for="teams_passing_level_${i}" class="form-label small">Teams Passing to Next Level</label>
+                                <input type="number" 
+                                       class="form-control form-control-sm" 
+                                       id="teams_passing_level_${i}" 
+                                       name="teams_passing_level_${i}" 
+                                       min="0" 
+                                       value="${isFinal ? 0 : defaultTeamsPassing}"
+                                       ${isFinal ? 'readonly' : ''}
+                                       required>
+                                <small class="text-muted">
+                                    ${isFinal ? 'Final level - no teams pass' : `Teams advancing to Level ${i + 1}`}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                    container.append(html);
+                }
+            } else {
+                $('#levelConfigSection').hide();
+            }
+        }
+
+        // Trigger on page load
+        generateLevelConfig();
+
+        // Trigger when num_levels changes
+        $('#num_levels').on('change input', generateLevelConfig);
+
+        // Update all level configs when default changes
+        $('#teams_passing_per_level').on('change input', function () {
+            const defaultValue = parseInt($(this).val()) || 0;
+            const numLevels = parseInt($('#num_levels').val());
+
+            for (let i = 1; i < numLevels; i++) { // Exclude final level
+                $(`#teams_passing_level_${i}`).val(defaultValue);
+            }
+        });
+
+        // Form validation
+        $('#initGameForm').on('submit', function (e) {
+            const numLevels = parseInt($('#num_levels').val());
+            let isValid = true;
+
+            // Validate that teams passing decreases or stays same
+            for (let i = 1; i < numLevels; i++) {
+                const currentPassing = parseInt($(`#teams_passing_level_${i}`).val());
+                if (currentPassing < 0) {
+                    alert(`Level ${i}: Teams passing cannot be negative`);
+                    isValid = false;
+                    break;
+                }
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                return false;
+            }
+        });
+    });
+</script>
 {% endblock %}
