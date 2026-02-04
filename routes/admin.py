@@ -167,51 +167,168 @@ def update_level_config(level_id):
     flash(f'Level {level.level_number} configuration updated!', 'success')
     return redirect(url_for('admin.manage_levels'))
 
-@admin_bp.route('/level/<int:level_id>/questions', methods=['GET', 'POST'])
+@admin_bp.route('/level/<int:level_id>/questions')
 @login_required
 @admin_required
 def manage_questions(level_id):
+    """List all questions for a level"""
+    level = Level.query.get_or_404(level_id)
+    questions = Question.query.filter_by(level_id=level_id).order_by(Question.question_number).all()
+    game_config = GameConfig.query.first()
+    return render_template('admin/manage_questions.html', level=level, questions=questions, game_config=game_config)
+
+@admin_bp.route('/level/<int:level_id>/questions/add', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def add_question(level_id):
+    """Add a new question"""
+    from models import QuestionMedia
     level = Level.query.get_or_404(level_id)
     
     if request.method == 'POST':
         question_type = request.form.get('question_type')
-        question_text = request.form.get('question_text')
+        question_text = request.form.get('question_text')  # Now contains HTML
         answer = request.form.get('answer')
         question_number = int(request.form.get('question_number'))
+        points = int(request.form.get('points', 10))
         
-        media_url = None
-        if 'media_file' in request.files:
-            file = request.files['media_file']
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                filepath = os.path.join('static/uploads', filename)
-                file.save(filepath)
-                media_url = f'/static/uploads/{filename}'
-        
+        # Create question
         question = Question(
             level_id=level_id,
             question_number=question_number,
             question_type=question_type,
             question_text=question_text,
-            media_url=media_url,
-            answer=answer
+            answer=answer,
+            points=points
         )
         
         db.session.add(question)
-        db.session.commit()
+        db.session.flush()  # Get question ID
         
+        # Handle multiple media files
+        num_media = int(request.form.get('num_media', 0))
+        for i in range(num_media):
+            media_file_key = f'media_file_{i}'
+            media_type_key = f'media_type_{i}'
+            media_caption_key = f'media_caption_{i}'
+            
+            if media_file_key in request.files:
+                file = request.files[media_file_key]
+                if file and file.filename:
+                    filename = secure_filename(file.filename)
+                    # Add timestamp to avoid conflicts
+                    import time
+                    timestamp = str(int(time.time()))
+                    filename = f"{timestamp}_{filename}"
+                    filepath = os.path.join('static/uploads', filename)
+                    file.save(filepath)
+                    
+                    media_url = f'/static/uploads/{filename}'
+                    media_type = request.form.get(media_type_key, 'image')
+                    media_caption = request.form.get(media_caption_key, '')
+                    
+                    media = QuestionMedia(
+                        question_id=question.id,
+                        media_type=media_type,
+                        media_url=media_url,
+                        media_caption=media_caption,
+                        display_order=i
+                    )
+                    db.session.add(media)
+        
+        db.session.commit()
         flash('Question added successfully!', 'success')
         return redirect(url_for('admin.manage_questions', level_id=level_id))
     
-    questions = Question.query.filter_by(level_id=level_id).order_by(Question.question_number).all()
-    return render_template('admin/manage_questions.html', level=level, questions=questions)
+    # Get next question number
+    max_question = db.session.query(db.func.max(Question.question_number)).filter_by(level_id=level_id).scalar()
+    next_question_number = (max_question or 0) + 1
+    
+    return render_template('admin/add_edit_question.html', level=level, question=None, next_question_number=next_question_number)
+
+@admin_bp.route('/question/<int:question_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_question(question_id):
+    """Edit an existing question"""
+    from models import QuestionMedia
+    question = Question.query.get_or_404(question_id)
+    level = question.level
+    
+    if request.method == 'POST':
+        question.question_type = request.form.get('question_type')
+        question.question_text = request.form.get('question_text')  # HTML content
+        question.answer = request.form.get('answer')
+        question.question_number = int(request.form.get('question_number'))
+        question.points = int(request.form.get('points', 10))
+        
+        # Handle media files
+        # First, handle deletions
+        delete_media_ids = request.form.getlist('delete_media')
+        for media_id in delete_media_ids:
+            media = QuestionMedia.query.get(int(media_id))
+            if media and media.question_id == question.id:
+                # Delete file from filesystem
+                if media.media_url and os.path.exists(media.media_url.lstrip('/')):
+                    try:
+                        os.remove(media.media_url.lstrip('/'))
+                    except:
+                        pass
+                db.session.delete(media)
+        
+        # Handle new media files
+        num_media = int(request.form.get('num_media', 0))
+        existing_media_count = len(question.media_files)
+        
+        for i in range(num_media):
+            media_file_key = f'media_file_{i}'
+            media_type_key = f'media_type_{i}'
+            media_caption_key = f'media_caption_{i}'
+            
+            if media_file_key in request.files:
+                file = request.files[media_file_key]
+                if file and file.filename:
+                    filename = secure_filename(file.filename)
+                    import time
+                    timestamp = str(int(time.time()))
+                    filename = f"{timestamp}_{filename}"
+                    filepath = os.path.join('static/uploads', filename)
+                    file.save(filepath)
+                    
+                    media_url = f'/static/uploads/{filename}'
+                    media_type = request.form.get(media_type_key, 'image')
+                    media_caption = request.form.get(media_caption_key, '')
+                    
+                    media = QuestionMedia(
+                        question_id=question.id,
+                        media_type=media_type,
+                        media_url=media_url,
+                        media_caption=media_caption,
+                        display_order=existing_media_count + i
+                    )
+                    db.session.add(media)
+        
+        db.session.commit()
+        flash('Question updated successfully!', 'success')
+        return redirect(url_for('admin.manage_questions', level_id=question.level_id))
+    
+    return render_template('admin/add_edit_question.html', level=level, question=question, next_question_number=None)
 
 @admin_bp.route('/question/<int:question_id>/delete', methods=['POST'])
 @login_required
 @admin_required
 def delete_question(question_id):
+    from models import QuestionMedia
     question = Question.query.get_or_404(question_id)
     level_id = question.level_id
+    
+    # Delete associated media files from filesystem
+    for media in question.media_files:
+        if media.media_url and os.path.exists(media.media_url.lstrip('/')):
+            try:
+                os.remove(media.media_url.lstrip('/'))
+            except:
+                pass
     
     db.session.delete(question)
     db.session.commit()
@@ -220,6 +337,7 @@ def delete_question(question_id):
     return redirect(url_for('admin.manage_questions', level_id=level_id))
 
 @admin_bp.route('/question/<int:question_id>/clues', methods=['GET', 'POST'])
+
 @login_required
 @admin_required
 def manage_clues(question_id):

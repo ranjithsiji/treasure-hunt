@@ -1,0 +1,301 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{% if question %}Edit{% else %}Add{% endif %} Question - {{ level.name }} - Treasure Hunt{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>
+        <i class="bi bi-{% if question %}pencil-square{% else %}plus-circle{% endif %}"></i>
+        {% if question %}Edit{% else %}Add New{% endif %} Question - {{ level.name }}
+    </h1>
+    <p class="text-muted">Level {{ level.level_number }}</p>
+</div>
+
+<form method="POST"
+    action="{% if question %}{{ url_for('admin.edit_question', question_id=question.id) }}{% else %}{{ url_for('admin.add_question', level_id=level.id) }}{% endif %}"
+    enctype="multipart/form-data" id="questionForm">
+
+    <div class="row">
+        <!-- Main Question Details -->
+        <div class="col-lg-8">
+            <div class="admin-card mb-4">
+                <div class="admin-card-header">
+                    <i class="bi bi-file-text"></i> Question Details
+                </div>
+                <div class="admin-card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="question_number" class="admin-form-label">Question Number *</label>
+                            <input type="number" class="form-control admin-form-control" id="question_number"
+                                name="question_number"
+                                value="{% if question %}{{ question.question_number }}{% else %}{{ next_question_number }}{% endif %}"
+                                min="1" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="question_type" class="admin-form-label">Question Type *</label>
+                            <select class="form-select admin-form-control" id="question_type" name="question_type"
+                                required>
+                                <option value="text" {% if question and question.question_type=='text' %}selected{%
+                                    endif %}>Text Only</option>
+                                <option value="image" {% if question and question.question_type=='image' %}selected{%
+                                    endif %}>Image</option>
+                                <option value="video" {% if question and question.question_type=='video' %}selected{%
+                                    endif %}>Video</option>
+                                <option value="mixed" {% if question and question.question_type=='mixed' %}selected{%
+                                    endif %}>Mixed Media</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="points" class="admin-form-label">Points *</label>
+                            <input type="number" class="form-control admin-form-control" id="points" name="points"
+                                value="{% if question %}{{ question.points }}{% else %}10{% endif %}" min="1" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="question_text" class="admin-form-label">Question Text (HTML Supported) *</label>
+                        <textarea id="question_text" name="question_text"
+                            class="form-control">{% if question %}{{ question.question_text }}{% endif %}</textarea>
+                        <small class="text-muted">Use the editor above to format your question with HTML</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="answer" class="admin-form-label">Correct Answer *</label>
+                        <input type="text" class="form-control admin-form-control" id="answer" name="answer"
+                            value="{% if question %}{{ question.answer }}{% endif %}"
+                            placeholder="Enter the correct answer" required>
+                        <small class="text-muted">Answer matching is case-insensitive</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Media Files Section -->
+            <div class="admin-card mb-4">
+                <div class="admin-card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="bi bi-paperclip"></i> Media Files
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary" id="addMediaBtn">
+                            <i class="bi bi-plus-circle"></i> Add Media
+                        </button>
+                    </div>
+                </div>
+                <div class="admin-card-body">
+                    <!-- Existing Media Files (for edit mode) -->
+                    {% if question and question.media_files %}
+                    <div class="mb-3">
+                        <h6>Existing Media Files</h6>
+                        <div class="row" id="existingMedia">
+                            {% for media in question.media_files %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <span
+                                                    class="badge bg-{{ 'success' if media.media_type == 'image' else 'danger' if media.media_type == 'video' else 'info' }} mb-2">
+                                                    {{ media.media_type|upper }}
+                                                </span>
+                                                {% if media.media_type == 'image' %}
+                                                <img src="{{ media.media_url }}" class="img-thumbnail mb-2"
+                                                    style="max-width: 100%; max-height: 150px;">
+                                                {% elif media.media_type == 'video' %}
+                                                <video src="{{ media.media_url }}" class="img-thumbnail mb-2"
+                                                    style="max-width: 100%; max-height: 150px;" controls></video>
+                                                {% endif %}
+                                                {% if media.media_caption %}
+                                                <p class="small mb-0"><strong>Caption:</strong> {{ media.media_caption
+                                                    }}</p>
+                                                {% endif %}
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="delete_media"
+                                                    value="{{ media.id }}" id="delete_{{ media.id }}">
+                                                <label class="form-check-label text-danger" for="delete_{{ media.id }}">
+                                                    Delete
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <hr>
+                    {% endif %}
+
+                    <!-- New Media Files -->
+                    <div id="mediaContainer">
+                        <p class="text-muted" id="noMediaText">Click "Add Media" to attach files to this question</p>
+                    </div>
+                    <input type="hidden" id="num_media" name="num_media" value="0">
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="admin-card mb-4">
+                <div class="admin-card-header">
+                    <i class="bi bi-lightning-fill"></i> Actions
+                </div>
+                <div class="admin-card-body">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-save"></i> {% if question %}Update{% else %}Save{% endif %} Question
+                        </button>
+                        <a href="{{ url_for('admin.manage_questions', level_id=level.id) }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Help Card -->
+            <div class="admin-card">
+                <div class="admin-card-header">
+                    <i class="bi bi-info-circle"></i> Help
+                </div>
+                <div class="admin-card-body">
+                    <h6>Question Types:</h6>
+                    <ul class="small">
+                        <li><strong>Text Only:</strong> Question without media</li>
+                        <li><strong>Image:</strong> Question with images</li>
+                        <li><strong>Video:</strong> Question with videos</li>
+                        <li><strong>Mixed Media:</strong> Multiple media types</li>
+                    </ul>
+                    <hr>
+                    <h6>Media Files:</h6>
+                    <ul class="small">
+                        <li>Supported: Images (JPG, PNG, GIF), Videos (MP4, WebM)</li>
+                        <li>Add captions for accessibility</li>
+                        <li>Files are displayed in order added</li>
+                    </ul>
+                    <hr>
+                    <h6>HTML Editor:</h6>
+                    <ul class="small">
+                        <li>Format text with bold, italic, colors</li>
+                        <li>Add lists, tables, links</li>
+                        <li>Insert code blocks</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .media-item {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: #f8f9fa;
+    }
+
+    .media-item:hover {
+        border-color: #667eea;
+        background: #f0f0ff;
+    }
+
+    .remove-media-btn {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<!-- TinyMCE Editor -->
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+    $(document).ready(function () {
+        // Initialize TinyMCE
+        tinymce.init({
+            selector: '#question_text',
+            height: 400,
+            menubar: false,
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | blocks | ' +
+                'bold italic forecolor backcolor | alignleft aligncenter ' +
+                'alignright alignjustify | bullist numlist outdent indent | ' +
+                'removeformat | code | help',
+            content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+            branding: false
+        });
+
+        // Media file management
+        let mediaCount = 0;
+
+        $('#addMediaBtn').on('click', function () {
+            $('#noMediaText').hide();
+            const mediaHtml = `
+            <div class="media-item" id="media_${mediaCount}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="mb-0">Media File ${mediaCount + 1}</h6>
+                    <button type="button" class="btn btn-sm btn-danger remove-media-btn" data-media-id="${mediaCount}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-2">
+                    <label class="form-label small">Media Type</label>
+                    <select class="form-select form-select-sm" name="media_type_${mediaCount}" required>
+                        <option value="image">Image</option>
+                        <option value="video">Video</option>
+                        <option value="audio">Audio</option>
+                        <option value="document">Document</option>
+                    </select>
+                </div>
+                
+                <div class="mb-2">
+                    <label class="form-label small">Select File *</label>
+                    <input type="file" class="form-control form-control-sm" name="media_file_${mediaCount}" accept="image/*,video/*,audio/*,.pdf" required>
+                </div>
+                
+                <div class="mb-0">
+                    <label class="form-label small">Caption (Optional)</label>
+                    <input type="text" class="form-control form-control-sm" name="media_caption_${mediaCount}" placeholder="Add a caption for this media">
+                </div>
+            </div>
+        `;
+
+            $('#mediaContainer').append(mediaHtml);
+            mediaCount++;
+            $('#num_media').val(mediaCount);
+        });
+
+        // Remove media item
+        $(document).on('click', '.remove-media-btn', function () {
+            const mediaId = $(this).data('media-id');
+            $(`#media_${mediaId}`).remove();
+
+            // Show no media text if no items left
+            if ($('#mediaContainer .media-item').length === 0) {
+                $('#noMediaText').show();
+            }
+        });
+
+        // Form validation
+        $('#questionForm').on('submit', function (e) {
+            // Update TinyMCE content
+            tinymce.triggerSave();
+
+            const questionText = $('#question_text').val().trim();
+            if (!questionText) {
+                e.preventDefault();
+                alert('Please enter question text');
+                return false;
+            }
+        });
+    });
+</script>
+{% endblock %}

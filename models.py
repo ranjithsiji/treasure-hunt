@@ -74,14 +74,31 @@ class Question(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     level_id = db.Column(db.Integer, db.ForeignKey('levels.id'), nullable=False)
     question_number = db.Column(db.Integer, nullable=False)
-    question_type = db.Column(db.String(20), nullable=False)  # text, image, video
-    question_text = db.Column(db.Text, nullable=False)
-    media_url = db.Column(db.String(255), nullable=True)
+    question_type = db.Column(db.String(20), nullable=False)  # text, image, video, mixed
+    question_text = db.Column(db.Text, nullable=False)  # Now supports HTML content
+    media_url = db.Column(db.String(255), nullable=True)  # Kept for backward compatibility
     answer = db.Column(db.String(255), nullable=False)
+    points = db.Column(db.Integer, default=10)  # Points for correct answer
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     level = db.relationship('Level', back_populates='questions')
     clues = db.relationship('Clue', back_populates='question', cascade='all, delete-orphan')
+    media_files = db.relationship('QuestionMedia', back_populates='question', cascade='all, delete-orphan')
+
+class QuestionMedia(db.Model):
+    __tablename__ = 'question_media'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    question_id = db.Column(db.Integer, db.ForeignKey('questions.id'), nullable=False)
+    media_type = db.Column(db.String(20), nullable=False)  # image, video, audio, document
+    media_url = db.Column(db.String(500), nullable=False)
+    media_caption = db.Column(db.String(255), nullable=True)
+    display_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    question = db.relationship('Question', back_populates='media_files')
+
 
 class Clue(db.Model):
     __tablename__ = 'clues'
