@@ -140,7 +140,11 @@
                         <i class="bi bi-paperclip"></i>
                     </div>
                     <div class="stat-details">
-                        <h3>{{ questions|sum(attribute='media_files')|length }}</h3>
+                        {% set total_media = namespace(count=0) %}
+                        {% for question in questions %}
+                        {% set total_media.count = total_media.count + question.media_files|length %}
+                        {% endfor %}
+                        <h3>{{ total_media.count }}</h3>
                         <p>Media Files</p>
                     </div>
                 </div>
@@ -151,7 +155,11 @@
                         <i class="bi bi-lightbulb"></i>
                     </div>
                     <div class="stat-details">
-                        <h3>{{ questions|sum(attribute='clues')|length }}</h3>
+                        {% set total_clues = namespace(count=0) %}
+                        {% for question in questions %}
+                        {% set total_clues.count = total_clues.count + question.clues|length %}
+                        {% endfor %}
+                        <h3>{{ total_clues.count }}</h3>
                         <p>Total Clues</p>
                     </div>
                 </div>
