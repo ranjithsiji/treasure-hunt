@@ -166,6 +166,13 @@
                 </div>
             </div>
 
+            <!-- System Settings -->
+            <a href="{{ url_for('admin.system_settings') }}"
+                class="sidebar-item {% if request.endpoint == 'admin.system_settings' %}active{% endif %}">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>System Settings</span>
+            </a>
+
             <!-- Reports & Analytics -->
             <div class="sidebar-item-group">
                 <a href="#reportsSubmenu" class="sidebar-item" data-bs-toggle="collapse" data-bs-parent="#sidebarMenu">

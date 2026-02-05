@@ -1,0 +1,169 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}System Settings - Treasure Hunt{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1><i class="bi bi-gear-fill"></i> System Settings</h1>
+    <p class="text-muted">Manage security settings, registration, and login controls</p>
+</div>
+
+<div class="row">
+    <!-- Login Key Settings -->
+    <div class="col-md-6 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <i class="bi bi-shield-lock-fill"></i> Login Key Settings
+            </div>
+            <div class="admin-card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <strong>Current Login Key:</strong>
+                    <code class="ms-2 fs-5">{{ config.login_key if config.login_key else 'Not Set' }}</code>
+                </div>
+                <p class="text-muted small mb-3">
+                    This key is required for all users to login. Share this key with participants at the event.
+                </p>
+
+                <form method="POST" action="{{ url_for('admin.update_login_key') }}">
+                    <div class="admin-form-group">
+                        <label for="login_key" class="admin-form-label">New Login Key</label>
+                        <input type="text" class="form-control admin-form-control" id="login_key" name="login_key"
+                            placeholder="Enter new login key" required>
+                        <small class="text-muted">Use a simple, memorable key that you can announce at the event</small>
+                    </div>
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-key-fill"></i> Update Login Key
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Window Control -->
+    <div class="col-md-6 mb-4">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <i class="bi bi-door-open-fill"></i> Registration Window
+            </div>
+            <div class="admin-card-body">
+                <div class="alert {{ 'alert-success' if config.registration_enabled else 'alert-warning' }}">
+                    <i
+                        class="bi {{ 'bi-check-circle-fill' if config.registration_enabled else 'bi-x-circle-fill' }}"></i>
+                    <strong>Status:</strong>
+                    <span class="ms-2 fs-5">{{ 'OPEN' if config.registration_enabled else 'CLOSED' }}</span>
+                </div>
+                <p class="text-muted small mb-3">
+                    Control when users can register for the event. When closed, the registration page will be
+                    inaccessible.
+                </p>
+
+                <form method="POST" action="{{ url_for('admin.toggle_registration') }}">
+                    <div class="d-grid">
+                        {% if config.registration_enabled %}
+                        <button type="submit" class="btn btn-warning btn-lg">
+                            <i class="bi bi-door-closed-fill"></i> Close Registration
+                        </button>
+                        {% else %}
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="bi bi-door-open-fill"></i> Open Registration
+                        </button>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Team Registration Codes -->
+<div class="row">
+    <div class="col-12">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <i class="bi bi-key-fill"></i> Team Registration Codes
+            </div>
+            <div class="admin-card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill"></i>
+                    Each team has a unique registration code. Share these codes with team leaders.
+                    Each code can only be used once for registration.
+                </div>
+
+                {% if teams %}
+                <div class="table-responsive">
+                    <table class="admin-table table">
+                        <thead>
+                            <tr>
+                                <th>Team Name</th>
+                                <th>Registration Code</th>
+                                <th>Status</th>
+                                <th>Registered User</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for team in teams %}
+                            <tr>
+                                <td><strong>{{ team.name }}</strong></td>
+                                <td>
+                                    <code class="fs-5 text-primary">{{ team.registration_code }}</code>
+                                    <button class="btn btn-sm btn-outline-secondary ms-2"
+                                        onclick="copyToClipboard('{{ team.registration_code }}')"
+                                        title="Copy to clipboard">
+                                        <i class="bi bi-clipboard"></i>
+                                    </button>
+                                </td>
+                                <td>
+                                    {% if team.code_used %}
+                                    <span class="badge bg-success">Used</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Unused</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if team.members %}
+                                    {{ team.members[0].username }}
+                                    {% else %}
+                                    <span class="text-muted">No user yet</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form method="POST"
+                                        action="{{ url_for('admin.regenerate_team_code', team_id=team.id) }}"
+                                        style="display: inline;"
+                                        onsubmit="return confirm('Regenerate code for {{ team.name }}? The old code will no longer work.');">
+                                        <button type="submit" class="btn btn-sm btn-warning" title="Regenerate Code">
+                                            <i class="bi bi-arrow-clockwise"></i> Regenerate
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    No teams created yet. Create teams in the <a href="{{ url_for('admin.manage_teams') }}">Manage
+                        Teams</a> section.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(function () {
+            alert('Code copied to clipboard: ' + text);
+        }, function (err) {
+            alert('Failed to copy code');
+        });
+    }
+</script>
+{% endblock %}
