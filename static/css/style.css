@@ -11,7 +11,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, rgb(105 20 154 / 56%) 0%, rgb(62 22 50 / 60%) 50%, rgb(15 96 34 / 55%) 100%), url(/static/images/pattern-3199922.svg);
     background-attachment: fixed;
 }
 
@@ -24,8 +24,7 @@ main {
     position: relative;
     min-height: 100vh;
     background:
-        linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 50%, rgba(15, 52, 96, 0.9) 100%),
-        url('/static/images/pattern-3199922.svg');
+        linear-gradient(135deg, rgb(105 20 154 / 56%) 0%, rgb(62 22 50 / 60%) 50%, rgb(15 96 34 / 55%) 100%), url(/static/images/pattern-3199922.svg);
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -135,7 +134,7 @@ main {
     font-weight: 900;
     margin: 0;
     letter-spacing: 3px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background: linear-gradient(135deg, #ebe585 0%, #4ba265 50%, #961dbd 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
