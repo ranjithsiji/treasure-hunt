@@ -115,14 +115,19 @@
                 <div class="card-body">
                     <p class="text-muted">Stuck on this question? Use a clue to get help!</p>
                     <div class="d-grid">
-                        {% if question.clues %}
+                        {% if question.clues and clues_remaining > 0 %}
                         <button id="get-clue-btn" class="btn btn-warning" data-question-id="{{ question.id }}">
                             <i class="bi bi-lightbulb-fill"></i> Get Clue
                         </button>
-                        {% else %}
+                        {% elif not question.clues %}
                         <div class="alert alert-light border text-center py-2 mb-0">
                             <small class="text-muted"><i class="bi bi-info-circle"></i> No clues available for this
                                 question.</small>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-light border text-center py-2 mb-0">
+                            <small class="text-muted"><i class="bi bi-info-circle"></i> You have used all your clues for
+                                this level.</small>
                         </div>
                         {% endif %}
                     </div>

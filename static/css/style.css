@@ -30,7 +30,7 @@ main {
     font-size: 3.5rem;
     font-weight: bold;
     margin-bottom: 20px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .hero-section p {
@@ -41,17 +41,17 @@ main {
 .card {
     border: none;
     border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
 }
 
 .card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #4d5fa6 0%, #31065d 100%);
     color: white;
     border-radius: 15px 15px 0 0 !important;
     font-weight: bold;
@@ -118,7 +118,7 @@ main {
     border-radius: 15px;
     padding: 30px;
     margin: 20px 0;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .question-media {
@@ -166,13 +166,15 @@ main {
     color: #667eea;
 }
 
-.form-control, .form-select {
+.form-control,
+.form-select {
     border-radius: 10px;
     border: 2px solid #e9ecef;
     padding: 12px 20px;
 }
 
-.form-control:focus, .form-select:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: #667eea;
     box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
@@ -186,7 +188,8 @@ footer {
     margin-top: auto;
 }
 
-.login-container, .register-container {
+.login-container,
+.register-container {
     min-height: calc(100vh - 200px);
     display: flex;
     align-items: center;
@@ -239,7 +242,7 @@ footer {
     .hero-section h1 {
         font-size: 2.5rem;
     }
-    
+
     .hero-section p {
         font-size: 1.1rem;
     }
