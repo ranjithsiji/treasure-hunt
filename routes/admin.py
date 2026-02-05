@@ -601,6 +601,71 @@ def game_logs():
 @login_required
 @admin_required
 def level_teams(level_number):
+    from models import TeamProgress, Level
     level = Level.query.filter_by(level_number=level_number).first_or_404()
-    teams = Team.query.filter_by(current_level=level_number).all()
-    return render_template('admin/level_teams.html', level=level, teams=teams)
+    
+    # Get all teams that are currently in this level or HAVE BEEN in this level and passed
+    # Actually, the user asked for "teams in this level" but also "finished the level in the order of time"
+    # So we show teams whose current_level is >= level_number
+    
+    teams = Team.query.filter(Team.current_level >= level_number).all()
+    q_count = len(level.questions)
+    
+    # Enrich teams with ranking data
+    team_stats = []
+    for team in teams:
+        # Get progress for all questions of THIS level to find the "latest" completion time
+        current_level_progress = TeamProgress.query.join(Question).filter(
+            TeamProgress.team_id == team.id,
+            Question.level_id == level.id,
+            TeamProgress.is_completed == True
+        ).order_by(TeamProgress.completed_at.desc()).first()
+        
+        last_action_time = current_level_progress.completed_at if current_level_progress else None
+        
+        is_actually_finished = team.current_level > level_number or (team.current_level == level_number and team.current_question > q_count)
+        
+        team_stats.append({
+            'team': team,
+            'status': "Passed" if team.current_level > level_number else "Current",
+            'finished': is_actually_finished,
+            'finish_time': last_action_time,
+            'current_q': min(team.current_question if team.current_level == level_number else q_count, q_count),
+            'sort_key': (
+                1 if is_actually_finished else 0, # Finished teams on top
+                team.current_question if team.current_level == level_number else q_count + 1, # Then by question number
+                -(last_action_time.timestamp()) if last_action_time else -9999999999 # Then by who got there first
+            )
+        })
+    
+    # Sort teams: Finished first (by time), then by question count
+    team_stats.sort(key=lambda x: x['sort_key'], reverse=True)
+    
+    all_levels = Level.query.order_by(Level.level_number).all()
+    
+    return render_template('admin/level_teams.html', 
+                          level=level, 
+                          team_stats=team_stats, 
+                          all_levels=all_levels)
+
+@admin_bp.route('/team/<int:team_id>/manual-assign', methods=['POST'])
+@login_required
+@admin_required
+def manual_assign_level(team_id):
+    team = Team.query.get_or_404(team_id)
+    new_level = request.form.get('level_number', type=int)
+    new_question = request.form.get('question_number', type=int, default=1)
+    
+    old_level = team.current_level
+    team.current_level = new_level
+    team.current_question = new_question
+    db.session.commit()
+    
+    log_game_action(
+        "MANUAL_LEVEL_ASSIGN",
+        team_id=team.id,
+        details=f"Admin manually moved team from Level {old_level} to Level {new_level}, Q{new_question}."
+    )
+    
+    flash(f"Team {team.name} manually moved to Level {new_level}.", "success")
+    return redirect(request.referrer or url_for('admin.manage_teams'))

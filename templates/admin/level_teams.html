@@ -5,97 +5,198 @@
 {% block content %}
 <div class="page-header d-flex justify-content-between align-items-center">
     <div>
-        <h1><i class="bi bi-people-fill"></i> Teams in {{ level.name }}</h1>
-        <p class="text-muted">Currently active teams at this stage</p>
+        <h1><i class="bi bi-people-fill"></i> Level Tracker: {{ level.name }}</h1>
+        <p class="text-muted">Ranked overview of team progress and qualification status</p>
     </div>
-    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i> Back to Dashboard
-    </a>
+    <div class="btn-group">
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Dashboard
+        </a>
+        <button class="btn btn-outline-primary" onclick="window.location.reload()">
+            <i class="bi bi-arrow-clockwise"></i> Refresh Status
+        </button>
+    </div>
 </div>
 
 <div class="row mb-4">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="stat-card stat-primary">
-            <div class="stat-card-icon"><i class="bi bi-people-fill text-primary"></i></div>
-            <div class="stat-card-value">{{ teams|length }}</div>
-            <div class="stat-card-label">Active Teams</div>
+            <div class="stat-card-icon"><i class="bi bi-flag-fill text-primary"></i></div>
+            <div class="stat-card-value">{{ team_stats|length }}</div>
+            <div class="stat-card-label">Teams tracked</div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
+        <div class="stat-card stat-success">
+            <div class="stat-card-icon"><i class="bi bi-check-all text-success"></i></div>
+            <div class="stat-card-value">{{ team_stats|selectattr('finished', 'equalto', True)|list|length }}</div>
+            <div class="stat-card-label">Finished level</div>
+        </div>
+    </div>
+    <div class="col-md-3">
         <div class="stat-card stat-info">
-            <div class="stat-card-icon"><i class="bi bi-question-circle-fill text-info"></i></div>
+            <div class="stat-card-icon"><i class="bi bi-question-circle text-info"></i></div>
             <div class="stat-card-value">{{ level.questions|length }}</div>
-            <div class="stat-card-label">Questions in Level</div>
+            <div class="stat-card-label">Level Questions</div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="stat-card stat-warning">
-            <div class="stat-card-icon"><i class="bi bi-trophy-fill text-warning"></i></div>
-            <div class="stat-card-value">{% if level.is_final %}Winner Takes All{% else %}{{ level.teams_passing }}{%
-                endif %}</div>
-            <div class="stat-card-label">{% if level.is_final %}Final Stage{% else %}Slots for Next Level{% endif %}
+            <div class="stat-card-icon"><i class="bi bi-door-open-fill text-warning"></i></div>
+            <div class="stat-card-value">{% if level.is_final %}FINAL{% else %}{{ level.teams_passing }}{% endif %}
             </div>
+            <div class="stat-card-label">Passing Slots</div>
         </div>
     </div>
 </div>
 
 <div class="admin-card">
-    <div class="admin-card-header">
-        <i class="bi bi-list-ul"></i> Team Roster for {{ level.name }}
+    <div class="admin-card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-trophy"></i> Live Level Leaderboard (Ranked)</span>
+        <span class="small text-white-50">Ranking based on completion time and question count</span>
     </div>
     <div class="admin-card-body">
-        {% if teams %}
+        {% if team_stats %}
         <div class="table-responsive">
             <table class="admin-table table table-hover">
                 <thead>
                     <tr>
-                        <th>Rank/Status</th>
+                        <th style="width: 80px;">Rank</th>
                         <th>Team Name</th>
-                        <th>Current Question</th>
-                        <th>Members</th>
-                        <th>Actions</th>
+                        <th>Progress Status</th>
+                        <th>Completion Time</th>
+                        <th>Current Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for team in teams %}
-                    {% set progress = team.progress|selectattr('level_number', 'equalto', level.level_number)|first %}
-                    <tr>
+                    {% for stat in team_stats %}
+                    {% set team = stat.team %}
+                    <tr
+                        class="{% if loop.index <= level.teams_passing and stat.finished %}table-success{% elif loop.index > level.teams_passing and stat.finished %}table-light{% endif %}">
                         <td>
-                            <span class="badge bg-primary badge-custom">Active</span>
+                            <div class="rank-circle {% if loop.index <= level.teams_passing %}rank-gold{% endif %}">
+                                {{ loop.index }}
+                            </div>
                         </td>
                         <td>
                             <strong>{{ team.name }}</strong>
-                        </td>
-                        <td>
-                            <span class="badge bg-secondary badge-custom">Q{{ team.current_question }}</span>
-                            {% if progress and progress.is_completed %}
-                            <span class="badge bg-success badge-custom ms-2"><i class="bi bi-check-circle"></i>
-                                Finished</span>
+                            {% if stat.status == "Passed" %}
+                            <span class="badge bg-success ms-2">Advanced to Level {{ team.current_level }}</span>
                             {% endif %}
                         </td>
                         <td>
-                            <small class="text-muted"
-                                style="max-width: 300px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                {{ team.member_names if team.member_names else 'No names added' }}
-                            </small>
+                            {% if stat.finished %}
+                            <span class="badge bg-success"><i class="bi bi-check-lg"></i> FINISHED LEVEL</span>
+                            {% else %}
+                            <div class="progress" style="height: 20px; width: 150px;">
+                                {% set pct = (stat.current_q / level.questions|length * 100)|round %}
+                                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                    style="width: {{ pct }}%">Q{{ stat.current_q }}</div>
+                            </div>
+                            <small class="text-muted d-block mt-1">Currently on Question {{ stat.current_q }}</small>
+                            {% endif %}
                         </td>
                         <td>
-                            <a href="{{ url_for('admin.game_logs', team_id=team.id) }}" class="btn btn-sm btn-info">
-                                <i class="bi bi-journal-text"></i> Logs
-                            </a>
+                            {% if stat.finish_time %}
+                            <small class="fw-bold text-success">{{ stat.finish_time.strftime('%H:%M:%S') }}</small>
+                            <div class="text-muted" style="font-size: 0.7rem;">{{ stat.finish_time.strftime('%d %b') }}
+                            </div>
+                            {% else %}
+                            <span class="text-muted">- In Progress -</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ url_for('admin.game_logs', team_id=team.id) }}"
+                                    class="btn btn-sm btn-outline-info" title="View Logs">
+                                    <i class="bi bi-journal-text"></i>
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
+                                    data-bs-target="#manualMoveModal{{ team.id }}" title="Manual Override">
+                                    <i class="bi bi-arrow-left-right"></i>
+                                </button>
+                            </div>
+
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        <!-- Modals moved outside table to prevent flickering -->
+        {% for stat in team_stats %}
+        {% set team = stat.team %}
+        <div class="modal fade" id="manualMoveModal{{ team.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content text-dark">
+                    <div class="modal-header">
+                        <h5 class="modal-title text-dark">Manual Level Adjustment: {{ team.name }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form action="{{ url_for('admin.manual_assign_level', team_id=team.id) }}" method="POST">
+                        <div class="modal-body">
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i> Use this for manual corrections only. This
+                                skips game logic.
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Move to Level:</label>
+                                <select name="level_number" class="form-select">
+                                    {% for l in all_levels %}
+                                    <option value="{{ l.level_number }}" {% if l.level_number==team.current_level
+                                        %}selected{% endif %}>
+                                        Level {{ l.level_number }}: {{ l.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Start at Question:</label>
+                                <input type="number" name="question_number" value="{{ team.current_question }}"
+                                    class="form-control" min="1" max="50">
+                                <small class="text-muted">Starting question number in the target level.</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger">Confirm manual Move</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
         {% else %}
         <div class="text-center py-5">
             <i class="bi bi-people text-muted" style="font-size: 5rem; opacity: 0.3;"></i>
-            <h3 class="mt-3">No teams in this level yet</h3>
-            <p class="text-muted">Teams will appear here as they qualify and the game progresses.</p>
+            <h3 class="mt-3">No teams have reached this level yet</h3>
         </div>
         {% endif %}
     </div>
 </div>
+
+<style>
+    .rank-circle {
+        width: 35px;
+        height: 35px;
+        background: #e9ecef;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #495057;
+    }
+
+    .rank-gold {
+        background: #FFD700;
+        color: #000;
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    }
+
+    .table-success {
+        background-color: rgba(40, 167, 69, 0.05) !important;
+    }
+</style>
 {% endblock %}
