@@ -175,8 +175,9 @@
                     <a href="{{ url_for('game.scoreboard') }}" class="sidebar-subitem">
                         <i class="bi bi-trophy"></i> Scoreboard
                     </a>
-                    <a href="{{ url_for('admin.dashboard') }}#stats" class="sidebar-subitem">
-                        <i class="bi bi-graph-up"></i> Game Statistics
+                    <a href="{{ url_for('admin.game_logs') }}"
+                        class="sidebar-subitem {% if request.endpoint == 'admin.game_logs' %}active{% endif %}">
+                        <i class="bi bi-journal-text"></i> Game Logs
                     </a>
                 </div>
             </div>

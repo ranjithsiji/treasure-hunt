@@ -6,6 +6,17 @@ from datetime import datetime
 
 game_bp = Blueprint('game', __name__)
 
+def log_game_action(action, team_id=None, details=None):
+    from models import GameLog
+    log = GameLog(
+        team_id=team_id,
+        user_id=current_user.id if current_user.is_authenticated else None,
+        action=action,
+        details=details
+    )
+    db.session.add(log)
+    db.session.commit()
+
 @game_bp.route('/dashboard')
 @login_required
 def dashboard():
@@ -102,6 +113,12 @@ def submit_answer():
             
             db.session.commit()
             
+            log_game_action(
+                "SUBMIT_CORRECT_ANSWER", 
+                team_id=team.id, 
+                details=f"Question {question.question_number} in Level {question.level.level_number} answered correctly."
+            )
+            
             response_data = {
                 'success': True,
                 'message': 'Correct answer!',
@@ -119,6 +136,11 @@ def submit_answer():
         else:
             return jsonify({'success': False, 'message': 'Question already completed.'})
     else:
+        log_game_action(
+            "SUBMIT_INCORRECT_ANSWER", 
+            team_id=team.id, 
+            details=f"Incorrect answer '{answer}' for Question {question.question_number}."
+        )
         return jsonify({'success': False, 'message': 'Incorrect answer. Try again!'})
 
 @game_bp.route('/get-clue/<int:question_id>')
@@ -174,6 +196,12 @@ def get_clue(question_id):
     
     db.session.add(clue_usage)
     db.session.commit()
+    
+    log_game_action(
+        "USE_CLUE", 
+        team_id=team.id, 
+        details=f"Clue {next_clue.clue_order} used for Question {question.question_number}."
+    )
     
     return jsonify({
         'success': True,

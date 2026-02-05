@@ -17,6 +17,17 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def log_game_action(action, team_id=None, details=None):
+    from models import GameLog
+    log = GameLog(
+        team_id=team_id,
+        user_id=current_user.id if current_user.is_authenticated else None,
+        action=action,
+        details=details
+    )
+    db.session.add(log)
+    db.session.commit()
+
 @admin_bp.route('/dashboard')
 @login_required
 @admin_required
@@ -68,6 +79,7 @@ def initialize_game():
             db.session.add(level)
         
         db.session.commit()
+        log_game_action("INITIALIZE_GAME", details=f"Game initialized with {num_levels} levels.")
         flash('Game initialized successfully with per-level team passing configuration!', 'success')
         return redirect(url_for('admin.dashboard'))
     
@@ -98,6 +110,7 @@ def start_game():
         team.current_question = 1
     
     db.session.commit()
+    log_game_action("START_GAME", details="Game started and Level 1 activated.")
     flash('Game started! Level 1 is now active.', 'success')
     return redirect(url_for('admin.dashboard'))
 
@@ -113,6 +126,7 @@ def stop_game():
         Level.query.update({Level.is_active: False})
         
         db.session.commit()
+        log_game_action("STOP_GAME", details="Game stopped manually by admin.")
         flash('Game stopped successfully.', 'warning')
     
     return redirect(url_for('admin.dashboard'))
@@ -564,3 +578,12 @@ def toggle_user_status(user_id):
     status = "activated" if user.is_active else "deactivated"
     flash(f'User {user.username} has been {status}.', 'success')
     return redirect(url_for('admin.manage_users'))
+
+@admin_bp.route('/game-logs')
+@login_required
+@admin_required
+def game_logs():
+    from models import GameLog
+    # Get all logs, latest first
+    logs = GameLog.query.order_by(GameLog.timestamp.desc()).all()
+    return render_template('admin/game_logs.html', logs=logs)

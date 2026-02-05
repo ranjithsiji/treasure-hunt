@@ -147,3 +147,16 @@ class ClueUsage(db.Model):
     team = db.relationship('Team')
     question = db.relationship('Question', back_populates='clue_usages')
     clue = db.relationship('Clue', back_populates='clue_usages')
+
+class GameLog(db.Model):
+    __tablename__ = 'game_logs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    action = db.Column(db.String(255), nullable=False)
+    details = db.Column(db.Text, nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    team = db.relationship('Team')
+    user = db.relationship('User')

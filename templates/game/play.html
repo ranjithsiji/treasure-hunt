@@ -38,7 +38,19 @@
                     </div>
 
                     <div id="clues-container" class="mt-4">
-                        <!-- Clues will be displayed here -->
+                        {% for clue in question.clues | sort(attribute='clue_order') %}
+                        {% if clue.id in used_clue_ids %}
+                        <div class="clue-box mb-3 p-3 border rounded shadow-sm bg-white border-warning">
+                            <h6 class="text-warning mb-2"><i class="bi bi-lightbulb-fill"></i> Clue Revealed</h6>
+                            <p class="mb-0 lead">{{ clue.clue_text }}</p>
+                            {% if clue.explanation %}
+                            <div class="mt-2 pt-2 border-top small text-muted">
+                                <i class="bi bi-info-circle"></i> <strong>Note:</strong> {{ clue.explanation }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
                     </div>
 
                     <form id="answer-form" class="mt-4">
