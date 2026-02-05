@@ -583,7 +583,14 @@ def toggle_user_status(user_id):
 @login_required
 @admin_required
 def game_logs():
-    from models import GameLog
-    # Get all logs, latest first
-    logs = GameLog.query.order_by(GameLog.timestamp.desc()).all()
-    return render_template('admin/game_logs.html', logs=logs)
+    from models import GameLog, Team
+    team_id = request.args.get('team_id', type=int)
+    
+    query = GameLog.query
+    if team_id:
+        query = query.filter_by(team_id=team_id)
+        
+    logs = query.order_by(GameLog.timestamp.desc()).all()
+    teams = Team.query.all()
+    
+    return render_template('admin/game_logs.html', logs=logs, teams=teams, selected_team_id=team_id)

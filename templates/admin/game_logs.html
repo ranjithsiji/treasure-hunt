@@ -8,10 +8,42 @@
         <h1><i class="bi bi-journal-text"></i> Game Logs</h1>
         <p class="text-muted">A complete history of all activities in the game</p>
     </div>
-    <button class="btn btn-outline-secondary" onclick="window.location.reload()">
-        <i class="bi bi-arrow-clockwise"></i> Refresh Logs
-    </button>
 </div>
+
+<!-- Filter Bar -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('admin.game_logs') }}" class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label for="team_filter" class="form-label mb-0 fw-bold"><i class="bi bi-filter"></i> Filter by
+                    Team:</label>
+            </div>
+            <div class="col-md-4">
+                <select name="team_id" id="team_filter" class="form-select" onchange="this.form.submit()">
+                    <option value="">All Teams / Global Actions</option>
+                    {% for team in teams %}
+                    <option value="{{ team.id }}" {% if selected_team_id==team.id %}selected{% endif %}>
+                        {{ team.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% if selected_team_id %}
+            <div class="col-auto">
+                <a href="{{ url_for('admin.game_logs') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Clear Filter
+                </a>
+            </div>
+            {% endif %}
+            <div class="col-auto ms-auto">
+                <button type="button" class="btn btn-outline-primary" onclick="window.location.reload()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 
 <div class="admin-card">
     <div class="admin-card-header">
