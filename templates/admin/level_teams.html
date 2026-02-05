@@ -91,7 +91,8 @@
                             <div class="progress" style="height: 20px; width: 150px;">
                                 {% set pct = (stat.current_q / level.questions|length * 100)|round %}
                                 <div class="progress-bar progress-bar-striped progress-bar-animated"
-                                    style="width: {{ pct }}%">Q{{ stat.current_q }}</div>
+                                    style="--progress-pct: {{ pct }}%; width: var(--progress-pct);">Q{{ stat.current_q
+                                    }}</div>
                             </div>
                             <small class="text-muted d-block mt-1">Currently on Question {{ stat.current_q }}</small>
                             {% endif %}
@@ -124,10 +125,10 @@
             </table>
         </div>
 
-        <!-- Modals moved outside table to prevent flickering -->
+        <!-- Modals moved outside table and fade removed to prevent flickering -->
         {% for stat in team_stats %}
         {% set team = stat.team %}
-        <div class="modal fade" id="manualMoveModal{{ team.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal" id="manualMoveModal{{ team.id }}" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
             <div class="modal-dialog">
                 <div class="modal-content text-dark">
                     <div class="modal-header">

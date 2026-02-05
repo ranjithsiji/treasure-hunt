@@ -207,7 +207,7 @@
 
 .admin-card:hover {
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
-    transform: translateY(-2px);
+    /* removed transform to prevent modal jitter */
 }
 
 .admin-card-header {
@@ -367,14 +367,7 @@
     z-index: 10004 !important;
 }
 
-/* Prevent flickering by disabling transitions */
-.modal,
-.note-modal,
-.note-popover,
-.note-dropdown-menu {
-    transition: none !important;
-    animation: none !important;
-}
+/* Standard modal behaviors allowed for stability */
 
 /* Link/Video/Image dialogs - fixed positioning */
 .note-link-dialog,
