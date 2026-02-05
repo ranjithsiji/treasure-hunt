@@ -112,33 +112,41 @@ def submit_answer():
             team.current_question += 1
             
             # Check for level completion and advancement
-            total_questions_in_level = Question.query.filter_by(level_id=question.level_id).count()
+            questions_in_level = Question.query.filter_by(level_id=question.level_id).all()
+            total_questions_in_level = len(questions_in_level)
+            
             if team.current_question > total_questions_in_level:
-                current_level = Level.query.get(question.level_id)
-                if not current_level.is_final:
-                    # Count teams already in higher levels
-                    advanced_teams_count = Team.query.filter(Team.current_level > current_level.level_number).count()
+                current_level_obj = Level.query.get(question.level_id)
+                
+                if not current_level_obj.is_final:
+                    # Robust count of teams that have already advanced BEYOND this level
+                    # Or are in this level but have finished it (to avoid race conditions)
+                    advanced_teams = Team.query.filter(Team.current_level > current_level_obj.level_number).all()
+                    advanced_count = len(advanced_teams)
                     
-                    if advanced_teams_count < current_level.teams_passing:
-                        # Team qualifies for the next level!
-                        team.current_level += 1
+                    if advanced_count < current_level_obj.teams_passing:
+                        # Team qualifies!
+                        old_lvl = team.current_level
+                        team.current_level = current_level_obj.level_number + 1
                         team.current_question = 1
+                        db.session.commit() # Immediate commit for safety
+                        
                         log_game_action(
                             "LEVEL_ADVANCE", 
                             team_id=team.id, 
-                            details=f"Team finished Level {current_level.level_number} and QUALIFIED for Level {team.current_level} (Position: {advanced_teams_count + 1})."
+                            details=f"Team qualified for Level {team.current_level} (Slot {advanced_count + 1}/{current_level_obj.teams_passing} filled)."
                         )
                     else:
                         log_game_action(
                             "LEVEL_COMPLETE_NOT_QUALIFIED", 
                             team_id=team.id, 
-                            details=f"Team finished Level {current_level.level_number} but DID NOT QUALIFY for the next level (All {current_level.teams_passing} slots filled)."
+                            details=f"Team finished Level {current_level_obj.level_number} but failed to qualify (All {current_level_obj.teams_passing} slots filled)."
                         )
                 else:
                     log_game_action(
                         "GAME_COMPLETE", 
                         team_id=team.id, 
-                        details=f"Team has completed the final level and finished the game!"
+                        details=f"Team has completed the final level!"
                     )
             
             db.session.commit()
