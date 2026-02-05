@@ -23,7 +23,7 @@ def admin_required(f):
 def log_game_action(action_type, team_id=None, details=None):
     """Helper function to log game actions"""
     log = GameLog(
-        action_type=action_type,
+        action=action_type,
         team_id=team_id,
         details=details
     )
