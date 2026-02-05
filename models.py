@@ -32,6 +32,8 @@ class Team(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
+    registration_code = db.Column(db.String(20), unique=True, nullable=True)  # Unique code for registration
+    code_used = db.Column(db.Boolean, default=False)  # Track if code has been used
     current_level = db.Column(db.Integer, default=1)
     current_question = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
@@ -69,6 +71,8 @@ class GameConfig(db.Model):
     clues_per_team = db.Column(db.Integer, nullable=False)
     current_level = db.Column(db.Integer, default=0)
     game_started = db.Column(db.Boolean, default=False)
+    registration_enabled = db.Column(db.Boolean, default=True)  # Toggle registration window
+    login_key = db.Column(db.String(50), nullable=True)  # Shared key for login (bot prevention)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Level(db.Model):

@@ -13,6 +13,23 @@
                     </div>
                     <div class="card-body p-4">
                         <form method="POST" action="{{ url_for('auth.register') }}">
+                            <!-- Honeypot field (hidden from users, catches bots) -->
+                            <div class="honeypot" style="position: absolute; left: -9999px;">
+                                <label for="website">Website</label>
+                                <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="team_code" class="form-label">
+                                    <i class="bi bi-key-fill"></i> Team Registration Code
+                                </label>
+                                <input type="text" class="form-control" id="team_code" name="team_code"
+                                    placeholder="Enter your team's unique code" required>
+                                <small class="form-text text-muted">
+                                    Get this code from your team admin or event organizer
+                                </small>
+                            </div>
+
                             <div class="mb-3">
                                 <label for="username" class="form-label">Username</label>
                                 <input type="text" class="form-control" id="username" name="username" required>
