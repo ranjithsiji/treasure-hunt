@@ -61,7 +61,7 @@
             <h4><i class="bi bi-speedometer2"></i> Admin Menu</h4>
         </div>
 
-        <div class="sidebar-menu">
+        <div class="sidebar-menu" id="sidebarMenu">
             <!-- Dashboard -->
             <a href="{{ url_for('admin.dashboard') }}"
                 class="sidebar-item {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
@@ -71,21 +71,23 @@
 
             <!-- Game Configuration -->
             <div class="sidebar-item-group">
-                <a href="#gameConfigSubmenu" class="sidebar-item" data-bs-toggle="collapse">
+                <a href="#gameConfigSubmenu" class="sidebar-item" data-bs-toggle="collapse"
+                    data-bs-parent="#sidebarMenu">
                     <i class="bi bi-gear-fill"></i>
                     <span>Game Configuration</span>
                     <i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <div class="collapse sidebar-submenu" id="gameConfigSubmenu">
-                    <a href="{{ url_for('admin.initialize_game') }}" class="sidebar-subitem">
+                <div class="collapse sidebar-submenu" id="gameConfigSubmenu" data-bs-parent="#sidebarMenu">
+                    <a href="{{ url_for('admin.initialize_game') }}"
+                        class="sidebar-subitem {% if game_config and game_config.game_started %}sidebar-item-disabled{% endif %}">
                         <i class="bi bi-plus-circle"></i> Initialize Game
                     </a>
                     <a href="{{ url_for('admin.start_game') }}"
-                        class="sidebar-subitem {% if game_config and game_config.game_started %}text-muted{% endif %}">
+                        class="sidebar-subitem {% if game_config and game_config.game_started %}sidebar-item-disabled{% endif %}">
                         <i class="bi bi-play-fill"></i> Start Game
                     </a>
                     <a href="{{ url_for('admin.stop_game') }}"
-                        class="sidebar-subitem {% if not game_config or not game_config.game_started %}text-muted{% endif %}">
+                        class="sidebar-subitem {% if not game_config or not game_config.game_started %}sidebar-item-disabled{% endif %}">
                         <i class="bi bi-stop-fill"></i> Stop Game
                     </a>
                 </div>
@@ -93,12 +95,12 @@
 
             <!-- Level Management -->
             <div class="sidebar-item-group">
-                <a href="#levelSubmenu" class="sidebar-item" data-bs-toggle="collapse">
+                <a href="#levelSubmenu" class="sidebar-item" data-bs-toggle="collapse" data-bs-parent="#sidebarMenu">
                     <i class="bi bi-layers-fill"></i>
                     <span>Level Management</span>
                     <i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <div class="collapse sidebar-submenu" id="levelSubmenu">
+                <div class="collapse sidebar-submenu" id="levelSubmenu" data-bs-parent="#sidebarMenu">
                     <a href="{{ url_for('admin.manage_levels') }}" class="sidebar-subitem">
                         <i class="bi bi-list-ul"></i> View All Levels
                     </a>
@@ -114,30 +116,30 @@
 
             <!-- Question Management -->
             <div class="sidebar-item-group">
-                <a href="#questionSubmenu" class="sidebar-item" data-bs-toggle="collapse">
+                <a href="#questionSubmenu" class="sidebar-item" data-bs-toggle="collapse" data-bs-parent="#sidebarMenu">
                     <i class="bi bi-question-circle-fill"></i>
                     <span>Questions & Clues</span>
                     <i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <div class="collapse sidebar-submenu" id="questionSubmenu">
+                <div class="collapse sidebar-submenu" id="questionSubmenu" data-bs-parent="#sidebarMenu">
                     <a href="{{ url_for('admin.manage_levels') }}" class="sidebar-subitem">
                         <i class="bi bi-card-list"></i> Manage Questions
                     </a>
-                    <a href="#" class="sidebar-subitem text-muted">
+                    <div class="sidebar-subitem sidebar-item-disabled">
                         <i class="bi bi-lightbulb"></i> Manage Clues
                         <small class="d-block">Via Questions</small>
-                    </a>
+                    </div>
                 </div>
             </div>
 
             <!-- Team Management -->
             <div class="sidebar-item-group">
-                <a href="#teamSubmenu" class="sidebar-item" data-bs-toggle="collapse">
+                <a href="#teamSubmenu" class="sidebar-item" data-bs-toggle="collapse" data-bs-parent="#sidebarMenu">
                     <i class="bi bi-people-fill"></i>
                     <span>Team Management</span>
                     <i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <div class="collapse sidebar-submenu" id="teamSubmenu">
+                <div class="collapse sidebar-submenu" id="teamSubmenu" data-bs-parent="#sidebarMenu">
                     <a href="{{ url_for('admin.manage_teams') }}" class="sidebar-subitem">
                         <i class="bi bi-list-ul"></i> View All Teams
                     </a>
@@ -149,12 +151,12 @@
 
             <!-- User Management -->
             <div class="sidebar-item-group">
-                <a href="#userSubmenu" class="sidebar-item" data-bs-toggle="collapse">
+                <a href="#userSubmenu" class="sidebar-item" data-bs-toggle="collapse" data-bs-parent="#sidebarMenu">
                     <i class="bi bi-person-fill"></i>
                     <span>User Management</span>
                     <i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <div class="collapse sidebar-submenu" id="userSubmenu">
+                <div class="collapse sidebar-submenu" id="userSubmenu" data-bs-parent="#sidebarMenu">
                     <a href="{{ url_for('admin.manage_users') }}" class="sidebar-subitem">
                         <i class="bi bi-list-ul"></i> View All Users
                     </a>
@@ -166,12 +168,12 @@
 
             <!-- Reports & Analytics -->
             <div class="sidebar-item-group">
-                <a href="#reportsSubmenu" class="sidebar-item" data-bs-toggle="collapse">
+                <a href="#reportsSubmenu" class="sidebar-item" data-bs-toggle="collapse" data-bs-parent="#sidebarMenu">
                     <i class="bi bi-bar-chart-fill"></i>
                     <span>Reports & Analytics</span>
                     <i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <div class="collapse sidebar-submenu" id="reportsSubmenu">
+                <div class="collapse sidebar-submenu" id="reportsSubmenu" data-bs-parent="#sidebarMenu">
                     <a href="{{ url_for('game.scoreboard') }}" class="sidebar-subitem">
                         <i class="bi bi-trophy"></i> Scoreboard
                     </a>

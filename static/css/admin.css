@@ -136,7 +136,7 @@
     padding: 10px 20px 10px 55px;
     color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     font-size: 0.9rem;
     border-left: 3px solid transparent;
 }
@@ -147,19 +147,28 @@
     border-left-color: #3498db;
 }
 
+.sidebar-subitem.active {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+    border-left-color: #3498db;
+}
+
+/* Fix for unreadable dark items */
+.sidebar-subitem.text-muted,
+.sidebar-item-disabled {
+    color: rgba(255, 255, 255, 0.3) !important;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 .sidebar-subitem i {
     margin-right: 8px;
     font-size: 0.9rem;
 }
 
-.sidebar-subitem.text-muted {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 .sidebar-subitem small {
     font-size: 0.75rem;
-    opacity: 0.7;
+    opacity: 0.6;
 }
 
 /* Sidebar Footer */
