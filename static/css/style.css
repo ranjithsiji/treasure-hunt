@@ -244,3 +244,28 @@ footer {
         font-size: 1.1rem;
     }
 }
+
+/* Team Members List Styling */
+.team-members-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.team-member-item {
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.team-member-item:hover {
+    background: #e9ecef;
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.team-member-item i {
+    font-size: 1.2rem;
+}
+
+.team-member-item span {
+    font-weight: 500;
+}

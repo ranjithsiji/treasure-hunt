@@ -16,198 +16,224 @@
     enctype="multipart/form-data" id="questionForm">
 
     <div class="row">
-        <!-- Main Question Details -->
-        <div class="col-lg-8">
+        <div class="col-lg-12">
             <div class="admin-card mb-4">
-                <div class="admin-card-header">
-                    <i class="bi bi-file-text"></i> Question Details
+                <div class="admin-card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-file-text"></i> Question Details</span>
+                    <button type="button" class="btn btn-sm btn-info text-white" data-bs-toggle="modal"
+                        data-bs-target="#helpModal">
+                        <i class="bi bi-question-circle"></i> Editor Help
+                    </button>
                 </div>
                 <div class="admin-card-body">
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            <label for="question_number" class="admin-form-label">Question Number *</label>
-                            <input type="number" class="form-control admin-form-control" id="question_number"
-                                name="question_number"
-                                value="{% if question %}{{ question.question_number }}{% else %}{{ next_question_number }}{% endif %}"
-                                min="1" required>
+                            <div class="admin-form-group">
+                                <label for="question_number" class="admin-form-label">Question Number *</label>
+                                <input type="number" class="form-control admin-form-control" id="question_number"
+                                    name="question_number"
+                                    value="{% if question %}{{ question.question_number }}{% else %}{{ next_question_number }}{% endif %}"
+                                    min="1" required>
+                            </div>
                         </div>
                         <div class="col-md-4">
-                            <label for="question_type" class="admin-form-label">Question Type *</label>
-                            <select class="form-select admin-form-control" id="question_type" name="question_type"
-                                required>
-                                <option value="text" {% if question and question.question_type=='text' %}selected{%
-                                    endif %}>Text Only</option>
-                                <option value="image" {% if question and question.question_type=='image' %}selected{%
-                                    endif %}>Image</option>
-                                <option value="video" {% if question and question.question_type=='video' %}selected{%
-                                    endif %}>Video</option>
-                                <option value="mixed" {% if question and question.question_type=='mixed' %}selected{%
-                                    endif %}>Mixed Media</option>
-                            </select>
+                            <div class="admin-form-group">
+                                <label for="question_type" class="admin-form-label">Question Type *</label>
+                                <select class="form-select admin-form-control" id="question_type" name="question_type"
+                                    required>
+                                    <option value="text" {% if question and question.question_type=='text' %}selected{%
+                                        endif %}>Text Only</option>
+                                    <option value="image" {% if question and question.question_type=='image'
+                                        %}selected{% endif %}>Image</option>
+                                    <option value="video" {% if question and question.question_type=='video'
+                                        %}selected{% endif %}>Video</option>
+                                    <option value="mixed" {% if question and question.question_type=='mixed'
+                                        %}selected{% endif %}>Mixed Media</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="col-md-4">
-                            <label for="points" class="admin-form-label">Points *</label>
-                            <input type="number" class="form-control admin-form-control" id="points" name="points"
-                                value="{% if question %}{{ question.points }}{% else %}10{% endif %}" min="1" required>
+                            <div class="admin-form-group">
+                                <label for="points" class="admin-form-label">Points *</label>
+                                <input type="number" class="form-control admin-form-control" id="points" name="points"
+                                    value="{% if question %}{{ question.points }}{% else %}10{% endif %}" min="1"
+                                    required>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="question_text" class="admin-form-label">Question Text (HTML Supported) *</label>
-                        <textarea id="question_text" name="question_text"
-                            class="form-control">{% if question %}{{ question.question_text | safe }}{% endif %}</textarea>
-                        <small class="text-muted">Use the editor above to format your question with HTML</small>
+                    <div class="mb-4">
+                        <label for="question_text" class="admin-form-label">Question Text (HTML Content) *</label>
+                        <div class="summernote-container">
+                            <textarea id="question_text" name="question_text"
+                                class="form-control">{% if question %}{{ question.question_text | safe }}{% endif %}</textarea>
+                        </div>
+                        <small class="text-muted"><i class="bi bi-info-circle"></i> Rich text editor for your question.
+                            You can drag and drop images or paste content from other editors.</small>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="answer" class="admin-form-label">Correct Answer *</label>
+                    <div class="mb-4">
+                        <label for="answer" class="admin-form-label">
+                            <i class="bi bi-check-circle-fill text-success"></i> Correct Answer *
+                        </label>
                         <input type="text" class="form-control admin-form-control" id="answer" name="answer"
                             value="{% if question %}{{ question.answer }}{% endif %}"
-                            placeholder="Enter the correct answer" required>
-                        <small class="text-muted">Answer matching is case-insensitive</small>
+                            placeholder="Enter the correct answer here" required>
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> Answer matching is case-insensitive
+                        </small>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label for="explanation" class="admin-form-label">
                             Explanation (Optional)
-                            <span class="badge bg-info ms-2">Shown after correct answer</span>
+                            <span class="badge bg-info-subtle text-info border border-info-subtle ms-2">Shown after
+                                correct answer</span>
                         </label>
-                        <textarea id="explanation" name="explanation"
-                            class="form-control">{% if question %}{{ question.explanation | safe }}{% endif %}</textarea>
+                        <div class="summernote-container">
+                            <textarea id="explanation" name="explanation"
+                                class="form-control">{% if question %}{{ question.explanation | safe }}{% endif %}</textarea>
+                        </div>
                         <small class="text-muted">
                             <i class="bi bi-info-circle"></i>
-                            This explanation will be displayed to participants after they answer correctly.
-                            Use it to provide additional context, learning points, or interesting facts.
+                            Provide additional context or learning points shown after a correct answer.
                         </small>
                     </div>
                 </div>
             </div>
 
             <!-- Media Files Section -->
-            <div class="admin-card mb-4">
-                <div class="admin-card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="bi bi-paperclip"></i> Media Files
-                        </div>
-                        <button type="button" class="btn btn-sm btn-primary" id="addMediaBtn">
-                            <i class="bi bi-plus-circle"></i> Add Media
-                        </button>
-                    </div>
+            <div class="admin-card mb-5">
+                <div class="admin-card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-paperclip"></i> Media Attachments (Legacy/Batch Mode)</span>
+                    <button type="button" class="btn btn-sm btn-primary" id="addMediaBtn">
+                        <i class="bi bi-plus-circle"></i> Add Batch Media
+                    </button>
                 </div>
                 <div class="admin-card-body">
-                    <!-- Existing Media Files (for edit mode) -->
                     {% if question and question.media_files %}
-                    <div class="mb-3">
-                        <h6>Existing Media Files</h6>
-                        <div class="row" id="existingMedia">
-                            {% for media in question.media_files %}
-                            <div class="col-md-6 mb-3">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div class="flex-grow-1">
-                                                <span
-                                                    class="badge bg-{{ 'success' if media.media_type == 'image' else 'danger' if media.media_type == 'video' else 'info' }} mb-2">
-                                                    {{ media.media_type|upper }}
-                                                </span>
-                                                {% if media.media_type == 'image' %}
-                                                <img src="{{ media.media_url }}" class="img-thumbnail mb-2"
-                                                    style="max-width: 100%; max-height: 150px;">
-                                                {% elif media.media_type == 'video' %}
-                                                <video src="{{ media.media_url }}" class="img-thumbnail mb-2"
-                                                    style="max-width: 100%; max-height: 150px;" controls></video>
-                                                {% endif %}
-                                                {% if media.media_caption %}
-                                                <p class="small mb-0"><strong>Caption:</strong> {{ media.media_caption
-                                                    }}</p>
-                                                {% endif %}
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="delete_media"
-                                                    value="{{ media.id }}" id="delete_{{ media.id }}">
-                                                <label class="form-check-label text-danger" for="delete_{{ media.id }}">
-                                                    Delete
-                                                </label>
-                                            </div>
+                    <div class="row" id="existingMedia">
+                        {% for media in question.media_files %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 shadow-sm border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span
+                                            class="badge bg-{{ 'success' if media.media_type == 'image' else 'danger' if media.media_type == 'video' else 'info' }}">
+                                            {{ media.media_type|upper }}
+                                        </span>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="delete_media"
+                                                value="{{ media.id }}" id="delete_{{ media.id }}">
+                                            <label class="form-check-label text-danger small"
+                                                for="delete_{{ media.id }}">
+                                                Delete
+                                            </label>
                                         </div>
                                     </div>
+                                    {% if media.media_type == 'image' %}
+                                    <img src="{{ media.media_url }}" class="img-fluid rounded mb-2"
+                                        style="max-height: 120px; width: 100%; object-fit: cover;">
+                                    {% elif media.media_type == 'video' %}
+                                    <video src="{{ media.media_url }}" class="img-fluid rounded mb-2"
+                                        style="max-height: 120px; width: 100%;" controls></video>
+                                    {% endif %}
+                                    {% if media.media_caption %}
+                                    <p class="small mb-0 text-truncate"><strong>Caption:</strong> {{ media.media_caption
+                                        }}</p>
+                                    {% endif %}
                                 </div>
                             </div>
-                            {% endfor %}
                         </div>
+                        {% endfor %}
                     </div>
-                    <hr>
+                    <hr class="my-4">
                     {% endif %}
 
-                    <!-- New Media Files -->
-                    <div id="mediaContainer">
-                        <p class="text-muted" id="noMediaText">Click "Add Media" to attach files to this question</p>
+                    <div id="mediaContainer" class="row">
+                        <!-- New media fields appear here -->
+                    </div>
+                    <div class="text-center py-3" id="noMediaText">
+                        <i class="bi bi-files display-6 text-muted mb-2 d-block"></i>
+                        <p class="text-muted">No additional media attachments. Use the primary text editor for inline
+                            media or click "Add Batch Media" for specialized attachments.</p>
                     </div>
                     <input type="hidden" id="num_media" name="num_media" value="0">
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Sidebar -->
-        <div class="col-lg-4">
-            <!-- Quick Actions -->
-            <div class="admin-card mb-4">
-                <div class="admin-card-header">
-                    <i class="bi bi-lightning-fill"></i> Actions
-                </div>
-                <div class="admin-card-body">
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="bi bi-save"></i> {% if question %}Update{% else %}Save{% endif %} Question
-                        </button>
-                        <a href="{{ url_for('admin.manage_questions', level_id=level.id) }}" class="btn btn-secondary">
-                            <i class="bi bi-x-circle"></i> Cancel
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Help Card -->
-            <div class="admin-card">
-                <div class="admin-card-header">
-                    <i class="bi bi-info-circle"></i> Help
-                </div>
-                <div class="admin-card-body">
-                    <h6>Question Types:</h6>
-                    <ul class="small">
-                        <li><strong>Text Only:</strong> Question without media</li>
-                        <li><strong>Image:</strong> Question with images</li>
-                        <li><strong>Video:</strong> Question with videos</li>
-                        <li><strong>Mixed Media:</strong> Multiple media types</li>
-                    </ul>
-                    <hr>
-                    <h6>Media Files:</h6>
-                    <ul class="small">
-                        <li>Supported: Images (JPG, PNG, GIF), Videos (MP4, WebM)</li>
-                        <li>Add captions for accessibility</li>
-                        <li>Files are displayed in order added</li>
-                    </ul>
-                    <hr>
-                    <h6>Summernote Editor:</h6>
-                    <ul class="small">
-                        <li>Rich text formatting (bold, italic, underline)</li>
-                        <li>Font styles, sizes, and colors</li>
-                        <li>Lists, tables, and links</li>
-                        <li>Insert images and videos inline</li>
-                        <li>Code view for HTML editing</li>
-                        <li>Fullscreen mode available</li>
-                    </ul>
-                </div>
+    <!-- Bottom Action Bar -->
+    <div class="admin-card action-bar">
+        <div class="admin-card-body d-flex justify-content-between align-items-center py-3">
+            <a href="{{ url_for('admin.manage_questions', level_id=level.id) }}" class="btn btn-outline-secondary px-4">
+                <i class="bi bi-x-circle"></i> Cancel
+            </a>
+            <div class="d-flex gap-3">
+                <button type="submit" class="btn btn-primary btn-lg px-5 shadow">
+                    <i class="bi bi-save"></i> {% if question %}Update{% else %}Create{% endif %} Question
+                </button>
             </div>
         </div>
     </div>
+
 </form>
+
+<!-- Help Modal -->
+<div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="helpModalLabel"><i class="bi bi-info-circle"></i> Question Editor Help</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-file-earmark-text"></i> Question Types</h6>
+                        <ul class="small list-group list-group-flush mb-4">
+                            <li class="list-group-item"><strong>Text Only:</strong> Basic textual question</li>
+                            <li class="list-group-item"><strong>Image:</strong> Primarily image-based</li>
+                            <li class="list-group-item"><strong>Video:</strong> Primarily video-based</li>
+                            <li class="list-group-item"><strong>Mixed:</strong> Combines multiple media types</li>
+                        </ul>
+
+                        <h6><i class="bi bi-paperclip"></i> Batch Media</h6>
+                        <ul class="small list-group list-group-flush">
+                            <li class="list-group-item">Supports JPG, PNG, GIF, MP4, WebM</li>
+                            <li class="list-group-item">Add captions for better accessibility</li>
+                            <li class="list-group-item">Files display in the order they are added</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="bi bi-type-bold"></i> Summernote Editor</h6>
+                        <ul class="small list-group list-group-flush mb-4">
+                            <li class="list-group-item">Full rich text formatting support</li>
+                            <li class="list-group-item">Insert images and videos <strong>inline</strong></li>
+                            <li class="list-group-item">Tables, lists, and links are supported</li>
+                            <li class="list-group-item">Code view available for manual HTML editing</li>
+                        </ul>
+                        <div class="alert alert-warning small">
+                            <i class="bi bi-lightbulb"></i> Pro Tip: You can drag and drop images directly into the text
+                            editor windows!
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
 {% endblock %}
 
 {% block extra_css %}
-<!-- Summernote CSS -->
-<link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote.min.css" rel="stylesheet">
+<!-- Summernote Lite CSS (more stable for BS5) -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet">
 <style>
     .media-item {
         border: 2px dashed #dee2e6;
@@ -228,39 +254,138 @@
 
     .note-editor.note-frame {
         border: 1px solid #dee2e6;
-        border-radius: 4px;
+        border-radius: 8px;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+        overflow: visible !important;
+        /* Allow popups to overflow */
     }
 
-    .note-editor.note-frame .note-editing-area .note-editable {
-        min-height: 300px;
+    .summernote-container {
+        margin-top: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Fix Summernote popup flickering and z-index issues */
+    .note-modal-backdrop {
+        z-index: 10000 !important;
+    }
+
+    .note-modal {
+        z-index: 10001 !important;
+        position: fixed !important;
+    }
+
+    .note-popover {
+        z-index: 10002 !important;
+        position: absolute !important;
+    }
+
+    .note-dropdown-menu {
+        z-index: 10003 !important;
+        position: absolute !important;
+    }
+
+    .note-tooltip {
+        z-index: 10004 !important;
+    }
+
+    /* Prevent flickering by disabling transitions on popups */
+    .note-modal,
+    .note-popover,
+    .note-dropdown-menu {
+        transition: none !important;
+        animation: none !important;
+    }
+
+    /* Ensure popups are always visible and don't clip */
+    .admin-card-body {
+        overflow: visible !important;
+    }
+
+    .admin-card {
+        overflow: visible !important;
+    }
+
+    /* Fix fullscreen mode */
+    .note-editor.fullscreen {
+        z-index: 9999 !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .note-editor.fullscreen .note-editable {
+        background-color: #fff !important;
+    }
+
+    /* Ensure link/video/image dialogs are properly positioned */
+    .note-link-dialog,
+    .note-image-dialog,
+    .note-video-dialog {
+        z-index: 10005 !important;
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
     }
 </style>
 {% endblock %}
 
 {% block extra_js %}
-<!-- Summernote JS -->
-<script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote.min.js"></script>
+<!-- Summernote Lite JS -->
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.js"></script>
 <script>
     $(document).ready(function () {
         // Initialize Summernote for Question Text
         $('#question_text').summernote({
-            height: 300,
-            minHeight: 200,
-            maxHeight: 500,
-            placeholder: 'Enter your question text here. You can use formatting, add images, links, and more...',
+            height: 350,
+            minHeight: 250,
+            maxHeight: 1000,
+            placeholder: 'Enter your question text here. Add images, videos, and professional formatting...',
+            dialogsInBody: true,  // Force dialogs to attach to body instead of editor
+            disableDragAndDrop: false,
             toolbar: [
                 ['style', ['style']],
-                ['font', ['bold', 'italic', 'underline', 'clear']],
+                ['font', ['bold', 'underline', 'clear']],
                 ['fontname', ['fontname']],
-                ['fontsize', ['fontsize']],
                 ['color', ['color']],
                 ['para', ['ul', 'ol', 'paragraph']],
                 ['table', ['table']],
-                ['insert', ['link', 'picture', 'video']],
+                ['insert', ['link', 'picture', 'video', 'hr']],
                 ['view', ['fullscreen', 'codeview', 'help']]
             ],
             fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana'],
-            fontSizes: ['8', '9', '10', '11', '12', '14', '16', '18', '20', '24', '28', '32', '36']
+            popover: {
+                image: [
+                    ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
+                    ['float', ['floatLeft', 'floatRight', 'floatNone']],
+                    ['remove', ['removeMedia']]
+                ],
+                link: [
+                    ['link', ['linkDialogShow', 'unlink']]
+                ],
+                table: [
+                    ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+                    ['delete', ['deleteRow', 'deleteCol', 'deleteTable']]
+                ],
+                air: [
+                    ['color', ['color']],
+                    ['font', ['bold', 'underline', 'clear']],
+                    ['para', ['ul', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture']]
+                ]
+            },
+            callbacks: {
+                onInit: function () {
+                    $('.note-editable').css('background-color', '#fff');
+                    // Fix for modal positioning
+                    $(this).parent().find('.note-modal').appendTo('body');
+                }
+            }
         });
 
         // Initialize Summernote for Explanation
@@ -269,6 +394,8 @@
             minHeight: 150,
             maxHeight: 400,
             placeholder: 'Enter an explanation that will be shown after participants answer correctly (optional)...',
+            dialogsInBody: true,  // Force dialogs to attach to body instead of editor
+            disableDragAndDrop: false,
             toolbar: [
                 ['style', ['style']],
                 ['font', ['bold', 'italic', 'underline', 'clear']],
@@ -278,7 +405,13 @@
                 ['insert', ['link', 'picture']],
                 ['view', ['codeview']]
             ],
-            fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana']
+            fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana'],
+            callbacks: {
+                onInit: function () {
+                    // Fix for modal positioning
+                    $(this).parent().find('.note-modal').appendTo('body');
+                }
+            }
         });
 
         // Media file management

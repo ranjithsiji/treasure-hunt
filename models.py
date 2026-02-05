@@ -37,6 +37,7 @@ class Team(db.Model):
     clues_remaining = db.Column(db.Integer, default=0)
     is_active = db.Column(db.Boolean, default=True)
     total_time = db.Column(db.Integer, default=0)  # in seconds
+    member_names = db.Column(db.Text, nullable=True)  # Comma-separated list of team member names
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     members = db.relationship('User', back_populates='team')
@@ -87,6 +88,8 @@ class Question(db.Model):
     level = db.relationship('Level', back_populates='questions')
     clues = db.relationship('Clue', back_populates='question', cascade='all, delete-orphan')
     media_files = db.relationship('QuestionMedia', back_populates='question', cascade='all, delete-orphan')
+    team_progress = db.relationship('TeamProgress', back_populates='question', cascade='all, delete-orphan')
+    clue_usages = db.relationship('ClueUsage', back_populates='question', cascade='all, delete-orphan')
 
 
 class QuestionMedia(db.Model):
@@ -110,9 +113,11 @@ class Clue(db.Model):
     question_id = db.Column(db.Integer, db.ForeignKey('questions.id'), nullable=False)
     clue_text = db.Column(db.Text, nullable=False)
     clue_order = db.Column(db.Integer, nullable=False)
+    explanation = db.Column(db.Text, nullable=True)  # Optional explanation for the clue
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     question = db.relationship('Question', back_populates='clues')
+    clue_usages = db.relationship('ClueUsage', back_populates='clue', cascade='all, delete-orphan')
 
 class TeamProgress(db.Model):
     __tablename__ = 'team_progress'
@@ -128,7 +133,7 @@ class TeamProgress(db.Model):
     is_completed = db.Column(db.Boolean, default=False)
     
     team = db.relationship('Team', back_populates='progress')
-    question = db.relationship('Question')
+    question = db.relationship('Question', back_populates='team_progress')
 
 class ClueUsage(db.Model):
     __tablename__ = 'clue_usage'
@@ -140,5 +145,5 @@ class ClueUsage(db.Model):
     used_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     team = db.relationship('Team')
-    question = db.relationship('Question')
-    clue = db.relationship('Clue')
+    question = db.relationship('Question', back_populates='clue_usages')
+    clue = db.relationship('Clue', back_populates='clue_usages')

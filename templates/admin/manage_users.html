@@ -101,9 +101,9 @@
                             {% endif %}
                         </td>
                         <td>
-                            <div class="btn-group">
+                            <div class="action-btn-group">
                                 <!-- Reset Password Toggle -->
-                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                <button type="button" class="btn btn-sm btn-warning action-btn" data-bs-toggle="modal"
                                     data-bs-target="#resetPasswordModal" data-user-id="{{ user.id }}"
                                     data-username="{{ user.username }}" title="Reset Password">
                                     <i class="bi bi-key-fill"></i>
@@ -114,7 +114,7 @@
                                 <form method="POST" action="{{ url_for('admin.toggle_user_status', user_id=user.id) }}"
                                     style="display:inline;">
                                     <button type="submit"
-                                        class="btn btn-sm {{ 'btn-secondary' if user.is_active else 'btn-success' }}"
+                                        class="btn btn-sm action-btn {{ 'btn-secondary' if user.is_active else 'btn-success' }}"
                                         title="{{ 'Deactivate' if user.is_active else 'Activate' }} User">
                                         <i
                                             class="bi {{ 'bi-person-x-fill' if user.is_active else 'bi-person-check-fill' }}"></i>
@@ -127,7 +127,7 @@
                                 <form method="POST" action="{{ url_for('admin.delete_user', user_id=user.id) }}"
                                     style="display: inline;"
                                     onsubmit="return confirm('Are you sure you want to delete user {{ user.username }}?');">
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Delete User">
+                                    <button type="submit" class="btn btn-sm btn-danger action-btn" title="Delete User">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>

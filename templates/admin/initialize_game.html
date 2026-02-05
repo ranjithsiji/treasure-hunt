@@ -107,25 +107,27 @@
                     const isFinal = (i === numLevels);
                     const html = `
                     <div class="col-md-4 mb-3">
-                        <div class="card border-${isFinal ? 'warning' : 'primary'}">
-                            <div class="card-body">
-                                <h6 class="card-title">
-                                    <i class="bi bi-${isFinal ? 'star-fill' : 'circle-fill'}"></i> 
+                        <div class="admin-card border h-100">
+                            <div class="admin-card-body p-3">
+                                <h6 class="mb-2">
+                                    <i class="bi bi-${isFinal ? 'star-fill' : 'circle-fill'} ${isFinal ? 'text-warning' : 'text-primary'}"></i> 
                                     Level ${i}
-                                    ${isFinal ? '<span class="badge bg-warning ms-2">Final</span>' : ''}
+                                    ${isFinal ? '<span class="badge bg-warning badge-custom ms-2">Final</span>' : ''}
                                 </h6>
-                                <label for="teams_passing_level_${i}" class="form-label small">Teams Passing to Next Level</label>
-                                <input type="number" 
-                                       class="form-control form-control-sm" 
-                                       id="teams_passing_level_${i}" 
-                                       name="teams_passing_level_${i}" 
-                                       min="0" 
-                                       value="${isFinal ? 0 : defaultTeamsPassing}"
-                                       ${isFinal ? 'readonly' : ''}
-                                       required>
-                                <small class="text-muted">
-                                    ${isFinal ? 'Final level - no teams pass' : `Teams advancing to Level ${i + 1}`}
-                                </small>
+                                <div class="admin-form-group mb-0">
+                                    <label for="teams_passing_level_${i}" class="admin-form-label small">Teams Passing</label>
+                                    <input type="number" 
+                                           class="form-control admin-form-control form-control-sm" 
+                                           id="teams_passing_level_${i}" 
+                                           name="teams_passing_level_${i}" 
+                                           min="0" 
+                                           value="${isFinal ? 0 : defaultTeamsPassing}"
+                                           ${isFinal ? 'readonly' : ''}
+                                           required>
+                                    <small class="text-muted" style="font-size: 0.7rem;">
+                                        ${isFinal ? 'Final level' : `To Level ${i + 1}`}
+                                    </small>
+                                </div>
                             </div>
                         </div>
                     </div>

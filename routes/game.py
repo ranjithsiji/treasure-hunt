@@ -178,6 +178,7 @@ def get_clue(question_id):
     return jsonify({
         'success': True,
         'clue': next_clue.clue_text,
+        'explanation': next_clue.explanation,
         'clues_remaining': team.clues_remaining
     })
 

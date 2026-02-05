@@ -349,11 +349,13 @@ def manage_clues(question_id):
     if request.method == 'POST':
         clue_text = request.form.get('clue_text')
         clue_order = int(request.form.get('clue_order'))
+        explanation = request.form.get('explanation')
         
         clue = Clue(
             question_id=question_id,
             clue_text=clue_text,
-            clue_order=clue_order
+            clue_order=clue_order,
+            explanation=explanation
         )
         
         db.session.add(clue)
@@ -390,6 +392,7 @@ def manage_teams():
 @admin_required
 def create_team():
     team_name = request.form.get('team_name')
+    member_names = request.form.get('member_names')
     
     if Team.query.filter_by(name=team_name).first():
         flash('Team name already exists.', 'danger')
@@ -398,6 +401,7 @@ def create_team():
     config = GameConfig.query.first()
     team = Team(
         name=team_name,
+        member_names=member_names,
         clues_remaining=config.clues_per_team if config else 0
     )
     
@@ -405,6 +409,19 @@ def create_team():
     db.session.commit()
     
     flash('Team created successfully!', 'success')
+    return redirect(url_for('admin.manage_teams'))
+
+@admin_bp.route('/update-team/<int:team_id>', methods=['POST'])
+@login_required
+@admin_required
+def update_team(team_id):
+    team = Team.query.get_or_404(team_id)
+    team.name = request.form.get('team_name')
+    team.member_names = request.form.get('member_names')
+    
+    db.session.commit()
+    
+    flash('Team updated successfully!', 'success')
     return redirect(url_for('admin.manage_teams'))
 
 @admin_bp.route('/delete-team/<int:team_id>', methods=['POST'])

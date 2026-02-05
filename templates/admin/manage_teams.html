@@ -3,93 +3,151 @@
 {% block title %}Manage Teams - Treasure Hunt{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <h2><i class="bi bi-people-fill"></i> Manage Teams</h2>
+<div class="page-header">
+    <h1><i class="bi bi-people-fill"></i> Manage Teams</h1>
+    <p class="text-muted">Create and manage participating teams</p>
+</div>
 
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-plus-circle-fill"></i> Create New Team</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('admin.create_team') }}">
-                        <div class="mb-3">
-                            <label for="team_name" class="form-label">Team Name</label>
-                            <input type="text" class="form-control" id="team_name" name="team_name" required>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-plus-circle-fill"></i> Create Team
-                            </button>
-                        </div>
-                    </form>
-                </div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="admin-card mb-4">
+            <div class="admin-card-header">
+                <i class="bi bi-plus-circle-fill"></i> Create New Team
+            </div>
+            <div class="admin-card-body">
+                <form method="POST" action="{{ url_for('admin.create_team') }}">
+                    <div class="admin-form-group">
+                        <label for="team_name" class="admin-form-label">Team Name</label>
+                        <input type="text" class="form-control admin-form-control" id="team_name" name="team_name"
+                            placeholder="Enter team name" required>
+                    </div>
+                    <div class="admin-form-group mt-3">
+                        <label for="member_names" class="admin-form-label">Team Members Names</label>
+                        <textarea class="form-control admin-form-control" id="member_names" name="member_names" rows="3"
+                            placeholder="Enter member names (one per line or comma separated)"></textarea>
+                        <small class="text-muted">These names will be shown to the team members.</small>
+                    </div>
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle-fill"></i> Create Team
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Existing Teams</h5>
-                </div>
-                <div class="card-body">
-                    {% if teams %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Team Name</th>
-                                    <th>Members</th>
-                                    <th>Level</th>
-                                    <th>Question</th>
-                                    <th>Clues</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for team in teams %}
-                                <tr>
-                                    <td><strong>{{ team.name }}</strong></td>
-                                    <td>{{ team.members|length }}</td>
-                                    <td><span class="badge bg-primary">{{ team.current_level }}</span></td>
-                                    <td>{{ team.current_question }}</td>
-                                    <td><span class="badge bg-warning">{{ team.clues_remaining }}</span></td>
-                                    <td>
-                                        {% if team.is_active %}
-                                        <span class="badge bg-success">Active</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">Inactive</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
+    <div class="col-md-8">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <i class="bi bi-list-ul"></i> Existing Teams
+            </div>
+            <div class="admin-card-body">
+                {% if teams %}
+                <div class="table-responsive">
+                    <table class="admin-table table">
+                        <thead>
+                            <tr>
+                                <th>Team Name</th>
+                                <th>Members List</th>
+                                <th>Accounts</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for team in teams %}
+                            <tr>
+                                <td>
+                                    <strong>{{ team.name }}</strong><br>
+                                    <span class="badge bg-primary badge-custom">Level {{ team.current_level }}</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ team.member_names if team.member_names else 'No names
+                                        added' }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info badge-custom">
+                                        {{ team.members|length }} Linked
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="action-btn-group">
+                                        <button type="button" class="btn btn-sm btn-warning action-btn"
+                                            title="Edit Team" data-bs-toggle="modal"
+                                            data-bs-target="#editTeamModal{{ team.id }}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
                                         <form method="POST" action="{{ url_for('admin.delete_team', team_id=team.id) }}"
-                                            style="display: inline;">
-                                            <button type="submit" class="btn btn-sm btn-danger delete-btn">
-                                                <i class="bi bi-trash"></i> Delete
+                                            style="display: inline;"
+                                            onsubmit="return confirm('Are you sure you want to delete team {{ team.name }}?');">
+                                            <button type="submit" class="btn btn-sm btn-danger action-btn"
+                                                title="Delete Team">
+                                                <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> No teams created yet. Create your first team using the form.
-                    </div>
-                    {% endif %}
+                                    </div>
+
+                                    <!-- Edit Team Modal -->
+                                    <div class="modal fade" id="editTeamModal{{ team.id }}" tabindex="-1"
+                                        aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Edit Team: {{ team.name }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                        aria-label="Close"></button>
+                                                </div>
+                                                <form method="POST"
+                                                    action="{{ url_for('admin.update_team', team_id=team.id) }}">
+                                                    <div class="modal-body text-start">
+                                                        <div class="admin-form-group mb-3">
+                                                            <label for="edit_team_name{{ team.id }}"
+                                                                class="admin-form-label">Team Name</label>
+                                                            <input type="text" class="form-control admin-form-control"
+                                                                id="edit_team_name{{ team.id }}" name="team_name"
+                                                                value="{{ team.name }}" required>
+                                                        </div>
+                                                        <div class="admin-form-group">
+                                                            <label for="edit_member_names{{ team.id }}"
+                                                                class="admin-form-label">Team Members Names</label>
+                                                            <textarea class="form-control admin-form-control"
+                                                                id="edit_member_names{{ team.id }}" name="member_names"
+                                                                rows="4">{{ team.member_names if team.member_names else '' }}</textarea>
+                                                            <small class="text-muted">Enter member names that appear on
+                                                                the game dashboard.</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary"
+                                                            data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-primary">Save
+                                                            Changes</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-people"></i>
+                    <h3>No Teams Yet</h3>
+                    <p>Start by creating your first team.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
+</div>
 
-    <div class="mt-3">
-        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Dashboard
-        </a>
-    </div>
+<div class="mt-3">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
 </div>
 {% endblock %}

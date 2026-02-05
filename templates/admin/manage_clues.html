@@ -3,80 +3,99 @@
 {% block title %}Manage Clues - Question {{ question.question_number }}{% endblock %}
 
 {% block content %}
-<div class="container my-4">
-    <h2><i class="bi bi-lightbulb-fill"></i> Manage Clues</h2>
-    <p class="text-muted">Question {{ question.question_number }}: {{ question.question_text[:100] }}...</p>
+<div class="page-header">
+    <h1><i class="bi bi-lightbulb-fill"></i> Manage Clues</h1>
+    <p class="text-muted">Question {{ question.question_number }}: {{ question.question_text|striptags|truncate(100) }}
+    </p>
+</div>
 
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-plus-circle-fill"></i> Add New Clue</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST">
-                        <div class="mb-3">
-                            <label for="clue_order" class="form-label">Clue Order</label>
-                            <input type="number" class="form-control" id="clue_order" name="clue_order" min="1"
-                                value="{{ clues|length + 1 }}" required>
-                            <small class="text-muted">Order in which clue will be revealed</small>
-                        </div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="admin-card mb-4">
+            <div class="admin-card-header">
+                <i class="bi bi-plus-circle-fill"></i> Add New Clue
+            </div>
+            <div class="admin-card-body">
+                <form method="POST">
+                    <div class="admin-form-group">
+                        <label for="clue_order" class="admin-form-label">Clue Order</label>
+                        <input type="number" class="form-control admin-form-control" id="clue_order" name="clue_order"
+                            min="1" value="{{ clues|length + 1 }}" required>
+                        <small class="text-muted">Order in which clue will be revealed</small>
+                    </div>
 
-                        <div class="mb-3">
-                            <label for="clue_text" class="form-label">Clue Text</label>
-                            <textarea class="form-control" id="clue_text" name="clue_text" rows="4" required></textarea>
-                        </div>
+                    <div class="admin-form-group">
+                        <label for="clue_text" class="admin-form-label">Clue Text *</label>
+                        <textarea class="form-control admin-form-control" id="clue_text" name="clue_text" rows="3"
+                            placeholder="Enter clue text (what the user sees)" required></textarea>
+                    </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-plus-circle-fill"></i> Add Clue
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <div class="admin-form-group">
+                        <label for="explanation" class="admin-form-label">Explanation (Optional)</label>
+                        <textarea class="form-control admin-form-control" id="explanation" name="explanation" rows="2"
+                            placeholder="Why this clue or additional info"></textarea>
+                    </div>
+
+                    <div class="d-grid mt-3">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle-fill"></i> Add Clue
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
 
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> Existing Clues</h5>
-                </div>
-                <div class="card-body">
-                    {% if clues %}
-                    <div class="list-group">
-                        {% for clue in clues %}
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <h6 class="mb-1">
-                                        <span class="badge bg-primary">Clue {{ clue.clue_order }}</span>
-                                    </h6>
-                                    <p class="mb-1">{{ clue.clue_text }}</p>
-                                </div>
-                                <form method="POST" action="{{ url_for('admin.delete_clue', clue_id=clue.id) }}">
-                                    <button type="submit" class="btn btn-sm btn-danger delete-btn">
+    <div class="col-md-8">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <i class="bi bi-list-ul"></i> Existing Clues
+            </div>
+            <div class="admin-card-body">
+                {% if clues %}
+                <div class="list-group">
+                    {% for clue in clues %}
+                    <div class="list-group-item border-0 border-bottom mb-2 pb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-2">
+                                    <span class="badge bg-primary badge-custom">Clue {{ clue.clue_order }}</span>
+                                </h6>
+                                <p class="mb-1 text-dark">{{ clue.clue_text }}</p>
+                                {% if clue.explanation %}
+                                <p class="mb-0 small text-muted">
+                                    <i class="bi bi-info-circle"></i> <strong>Explanation:</strong> {{ clue.explanation
+                                    }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            <div class="action-btn-group ms-3">
+                                <form method="POST" action="{{ url_for('admin.delete_clue', clue_id=clue.id) }}"
+                                    onsubmit="return confirm('Are you sure you want to delete this clue?');">
+                                    <button type="submit" class="btn btn-sm btn-danger action-btn" title="Delete Clue">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </form>
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
-                    {% else %}
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> No clues added yet. Add your first clue using the form.
-                    </div>
-                    {% endif %}
+                    {% endfor %}
                 </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-lightbulb"></i>
+                    <h3>No Clues Yet</h3>
+                    <p>Add your first clue for this question.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
+</div>
 
-    <div class="mt-3">
-        <a href="{{ url_for('admin.manage_questions', level_id=question.level_id) }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Questions
-        </a>
-    </div>
+<div class="mt-3">
+    <a href="{{ url_for('admin.manage_questions', level_id=question.level_id) }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Questions
+    </a>
 </div>
 {% endblock %}

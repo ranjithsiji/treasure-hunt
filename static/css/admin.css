@@ -202,7 +202,7 @@
 }
 
 .admin-card-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #495176 0%, #150823 100%);
     color: white;
     padding: 20px;
     border-radius: 15px 15px 0 0;
@@ -293,20 +293,131 @@
 /* Action Buttons */
 .action-btn-group {
     display: flex;
-    gap: 10px;
+    gap: 5px;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .action-btn {
-    padding: 10px 20px;
+    padding: 8px 16px;
     border-radius: 8px;
     font-weight: 500;
     transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.btn-sm.action-btn {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    border-radius: 6px;
+}
+
+.action-btn i {
+    font-size: 1rem;
+    margin: 0;
 }
 
 .action-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Summernote Fixes - Comprehensive */
+.note-editor .note-editing-area {
+    z-index: 0;
+}
+
+.note-editor.note-frame {
+    overflow: visible !important;
+}
+
+/* Modal and backdrop z-index hierarchy */
+.note-modal-backdrop {
+    z-index: 10000 !important;
+}
+
+.note-modal {
+    z-index: 10001 !important;
+    position: fixed !important;
+}
+
+.note-popover {
+    z-index: 10002 !important;
+    position: absolute !important;
+}
+
+.note-dropdown-menu {
+    z-index: 10003 !important;
+    position: absolute !important;
+}
+
+.note-tooltip {
+    z-index: 10004 !important;
+}
+
+/* Prevent flickering by disabling transitions */
+.note-modal,
+.note-popover,
+.note-dropdown-menu {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Link/Video/Image dialogs - fixed positioning */
+.note-link-dialog,
+.note-image-dialog,
+.note-video-dialog {
+    z-index: 10005 !important;
+    position: fixed !important;
+}
+
+/* Fullscreen mode fixes */
+.note-editor.fullscreen {
+    z-index: 9999 !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.note-editor.fullscreen .note-editable {
+    background-color: #fff !important;
+}
+
+/* Fix for Summernote popups being cut off in cards */
+.admin-card-body {
+    padding: 25px;
+    position: relative;
+    overflow: visible !important;
+}
+
+.admin-card {
+    overflow: visible !important;
+}
+
+/* Action Bar */
+.action-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 1000;
+    margin-top: 3rem;
+    margin-bottom: 0;
+    border-radius: 15px 15px 0 0;
+    background: #fff;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+    border-top: 1px solid #eee;
+}
+
+.summernote-container .note-editor {
+    margin-bottom: 0;
+}
+
+.summernote-container .note-editing-area {
+    background-color: #fcfcfc;
 }
 
 /* Tables */

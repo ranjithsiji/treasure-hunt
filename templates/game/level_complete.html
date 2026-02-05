@@ -36,6 +36,34 @@
                     </div>
                 </div>
             </div>
+
+            <div class="card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="bi bi-people-fill"></i> Your Team: {{ team.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3"><strong><i class="bi bi-person-badge"></i> Team Members:</strong></p>
+                    <div class="team-members-list">
+                        {% if team.member_names %}
+                        <div class="p-3 bg-light rounded shadow-sm text-dark">
+                            {{ team.member_names | replace('\n', '<br>') | safe }}
+                        </div>
+                        {% elif team.members %}
+                        {% for member in team.members %}
+                        <div class="team-member-item d-flex align-items-center mb-2 p-2 border rounded">
+                            <i class="bi bi-person-circle text-success me-2" style="font-size: 1.5rem;"></i>
+                            <span class="flex-grow-1">{{ member.username }}</span>
+                            {% if member.id == current_user.id %}
+                            <span class="badge bg-success">You</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <p class="text-muted mb-0">No members added yet</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
