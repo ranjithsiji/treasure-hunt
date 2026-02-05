@@ -655,10 +655,13 @@ def manual_assign_level(team_id):
     team = Team.query.get_or_404(team_id)
     new_level = request.form.get('level_number', type=int)
     new_question = request.form.get('question_number', type=int, default=1)
+    new_clues = request.form.get('clues_remaining', type=int)
     
     old_level = team.current_level
     team.current_level = new_level
     team.current_question = new_question
+    if new_clues is not None:
+        team.clues_remaining = new_clues
     db.session.commit()
     
     log_game_action(

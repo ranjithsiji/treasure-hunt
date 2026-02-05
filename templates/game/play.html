@@ -115,9 +115,16 @@
                 <div class="card-body">
                     <p class="text-muted">Stuck on this question? Use a clue to get help!</p>
                     <div class="d-grid">
+                        {% if question.clues %}
                         <button id="get-clue-btn" class="btn btn-warning" data-question-id="{{ question.id }}">
                             <i class="bi bi-lightbulb-fill"></i> Get Clue
                         </button>
+                        {% else %}
+                        <div class="alert alert-light border text-center py-2 mb-0">
+                            <small class="text-muted"><i class="bi bi-info-circle"></i> No clues available for this
+                                question.</small>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

@@ -188,6 +188,7 @@ def get_clue(question_id):
         return jsonify({'success': False, 'message': 'You are not assigned to any team.'})
     
     team = current_user.team
+    question = Question.query.get_or_404(question_id)
     
     if team.clues_remaining <= 0:
         return jsonify({'success': False, 'message': 'No clues remaining!'})
@@ -210,8 +211,11 @@ def get_clue(question_id):
             next_clue = clue
             break
     
+    if not clues:
+        return jsonify({'success': False, 'message': 'There are no clues defined for this question.'})
+        
     if not next_clue:
-        return jsonify({'success': False, 'message': 'All clues for this question have been used.'})
+        return jsonify({'success': False, 'message': 'You have already used all available clues for this question.'})
     
     # Record clue usage
     clue_usage = ClueUsage(
