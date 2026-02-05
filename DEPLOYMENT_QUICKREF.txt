@@ -1,0 +1,121 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    DEPLOYMENT QUICK REFERENCE CARD                           ║
+║              Level-Specific Clue System Migration                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ PRE-DEPLOYMENT (5 minutes)                                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+1. BACKUP DATABASE
+   mysqldump -u user -p treasure_hunt > backup_$(date +%Y%m%d_%H%M%S).sql
+
+2. TEST MIGRATION (DRY RUN)
+   python migrate_level_clues.py upgrade --dry-run
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ DEPLOYMENT (10-15 minutes)                                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+1. STOP APPLICATION
+   sudo systemctl stop treasure-hunt
+
+2. PULL LATEST CODE
+   git pull origin main
+   git log --oneline -3  # Verify commits
+
+3. UPDATE DEPENDENCIES
+   source .venv/bin/activate
+   pip install -r requirements.txt
+
+4. RUN MIGRATION
+   python migrate_level_clues.py upgrade
+
+5. START APPLICATION
+   sudo systemctl start treasure-hunt
+   sudo systemctl status treasure-hunt
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ POST-DEPLOYMENT VERIFICATION (5 minutes)                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+1. CHECK DATABASE
+   mysql -u user -p treasure_hunt -e "SELECT level_number, clues_allowed FROM levels;"
+
+2. TEST ADMIN INTERFACE
+   - Login as admin
+   - Go to "Initialize Game"
+   - Verify per-level clue inputs visible
+
+3. TEST PLAYER INTERFACE
+   - Login as team
+   - Verify "Clues Remaining (Level X): Y" displayed
+   - Request a clue, verify count decreases
+
+4. CHECK LOGS
+   tail -f /var/log/treasure-hunt/app.log
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ROLLBACK (if needed)                                                         │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+1. STOP APPLICATION
+   sudo systemctl stop treasure-hunt
+
+2. ROLLBACK MIGRATION
+   python migrate_level_clues.py downgrade
+
+3. RESTORE CODE
+   git checkout e6a53bc
+
+4. RESTART
+   sudo systemctl start treasure-hunt
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TROUBLESHOOTING                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+ISSUE: Teams show 0 clues
+FIX:   UPDATE levels SET clues_allowed = 10 WHERE clues_allowed = 0;
+
+ISSUE: Migration fails "column exists"
+FIX:   Run migration again (it's idempotent)
+
+ISSUE: App won't start
+CHECK: 1. git status
+       2. python app.py (see errors)
+       3. tail -f /var/log/treasure-hunt/app.log
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ SUCCESS CRITERIA                                                             │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+✓ Migration completes without errors
+✓ All levels have clues_allowed set
+✓ Teams can request clues
+✓ Clue counts reset on level advance
+✓ Admin can configure per-level quotas
+✓ No errors in application logs
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ IMPORTANT FILES                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+migrate_level_clues.py       - Migration script
+DEPLOYMENT_GUIDE.md          - Full deployment documentation
+TESTING_REPORT_2026-02-05.md - Detailed technical report
+SESSION_SUMMARY.txt          - Quick summary
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ESTIMATED TIMELINE                                                           │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Pre-deployment:   5 minutes
+Deployment:      15 minutes
+Verification:     5 minutes
+─────────────────────────────
+TOTAL:           25 minutes
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ For detailed instructions, see: DEPLOYMENT_GUIDE.md                         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
