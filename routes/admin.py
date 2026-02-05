@@ -84,7 +84,7 @@ def initialize_game():
             for i in range(existing_levels + 1, num_levels + 1):
                 level = Level(
                     level_number=i,
-                    name=f\"Level {i}\",
+                    name=f"Level {i}",
                     teams_passing=teams_passing_per_level,
                     is_final=(i == num_levels),
                     clues_allowed=clues_per_team
@@ -94,8 +94,8 @@ def initialize_game():
         db.session.commit()
         
         log_game_action(
-            \"GAME_INITIALIZED\",
-            details=f\"Game initialized with {num_levels} levels, {questions_per_level} questions per level.\"
+            "GAME_INITIALIZED",
+            details=f"Game initialized with {num_levels} levels, {questions_per_level} questions per level."
         )
         
         flash('Game configuration saved successfully!', 'success')
@@ -130,7 +130,7 @@ def start_game():
     config.current_level = 1
     db.session.commit()
     
-    log_game_action(\"GAME_STARTED\", details=\"Game officially started. Level 1 activated.\")
+    log_game_action("GAME_STARTED", details="Game officially started. Level 1 activated.")
     
     flash('Game has been started! Level 1 is now active.', 'success')
     return redirect(url_for('admin.dashboard'))
@@ -148,7 +148,7 @@ def stop_game():
             level.is_active = False
         db.session.commit()
         
-        log_game_action(\"GAME_STOPPED\", details=\"Game stopped by admin.\")
+        log_game_action("GAME_STOPPED", details="Game stopped by admin.")
         flash('Game has been stopped.', 'info')
     
     return redirect(url_for('admin.dashboard'))
@@ -174,7 +174,7 @@ def start_level(level_number):
     
     db.session.commit()
     
-    log_game_action(\"LEVEL_STARTED\", details=f\"Level {level_number} activated by admin.\")
+    log_game_action("LEVEL_STARTED", details=f"Level {level_number} activated by admin.")
     flash(f'Level {level_number} has been activated.', 'success')
     return redirect(url_for('admin.dashboard'))
 
@@ -186,7 +186,7 @@ def stop_level(level_number):
     if level:
         level.is_active = False
         db.session.commit()
-        log_game_action(\"LEVEL_STOPPED\", details=f\"Level {level_number} deactivated by admin.\")
+        log_game_action("LEVEL_STOPPED", details=f"Level {level_number} deactivated by admin.")
         flash(f'Level {level_number} has been deactivated.', 'info')
     
     return redirect(url_for('admin.dashboard'))
@@ -211,8 +211,8 @@ def update_level_config(level_id):
     db.session.commit()
     
     log_game_action(
-        \"LEVEL_CONFIG_UPDATED\",
-        details=f\"Level {level.level_number} config updated: {level.teams_passing} teams passing, {level.clues_allowed} clues allowed.\"
+        "LEVEL_CONFIG_UPDATED",
+        details=f"Level {level.level_number} config updated: {level.teams_passing} teams passing, {level.clues_allowed} clues allowed."
     )
     
     flash(f'Level {level.level_number} configuration updated successfully!', 'success')
@@ -248,12 +248,12 @@ def add_question(level_id):
             if file and file.filename:
                 filename = secure_filename(file.filename)
                 # Create unique filename
-                unique_filename = f\"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}\"
+                unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
                 upload_folder = os.path.join('static', 'uploads')
                 os.makedirs(upload_folder, exist_ok=True)
                 file_path = os.path.join(upload_folder, unique_filename)
                 file.save(file_path)
-                image_path = f\"uploads/{unique_filename}\"
+                image_path = f"uploads/{unique_filename}"
         
         question = Question(
             level_id=level_id,
@@ -268,8 +268,8 @@ def add_question(level_id):
         db.session.commit()
         
         log_game_action(
-            \"QUESTION_ADDED\",
-            details=f\"Question {next_number} added to Level {level.level_number}.\"
+            "QUESTION_ADDED",
+            details=f"Question {next_number} added to Level {level.level_number}."
         )
         
         flash(f'Question {next_number} added successfully!', 'success')
@@ -294,12 +294,12 @@ def edit_question(question_id):
             file = request.files['question_image']
             if file and file.filename:
                 filename = secure_filename(file.filename)
-                unique_filename = f\"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}\"
+                unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
                 upload_folder = os.path.join('static', 'uploads')
                 os.makedirs(upload_folder, exist_ok=True)
                 file_path = os.path.join(upload_folder, unique_filename)
                 file.save(file_path)
-                question.image_path = f\"uploads/{unique_filename}\"
+                question.image_path = f"uploads/{unique_filename}"
         
         # Handle image removal
         if request.form.get('remove_image') == 'true':
@@ -308,8 +308,8 @@ def edit_question(question_id):
         db.session.commit()
         
         log_game_action(
-            \"QUESTION_UPDATED\",
-            details=f\"Question {question.question_number} in Level {level.level_number} updated.\"
+            "QUESTION_UPDATED",
+            details=f"Question {question.question_number} in Level {level.level_number} updated."
         )
         
         flash(f'Question {question.question_number} updated successfully!', 'success')
@@ -330,8 +330,8 @@ def delete_question(question_id):
     db.session.commit()
     
     log_game_action(
-        \"QUESTION_DELETED\",
-        details=f\"Question {question_number} deleted from Level {level_number}.\"
+        "QUESTION_DELETED",
+        details=f"Question {question_number} deleted from Level {level_number}."
     )
     
     flash(f'Question {question_number} deleted successfully!', 'success')
@@ -397,7 +397,7 @@ def create_team():
     db.session.add(team)
     db.session.commit()
     
-    log_game_action(\"TEAM_CREATED\", team_id=team.id, details=f\"Team '{team_name}' created with code {registration_code}.\")
+    log_game_action("TEAM_CREATED", team_id=team.id, details=f"Team '{team_name}' created with code {registration_code}.")
     flash(f'Team created successfully! Registration Code: {registration_code}', 'success')
     return redirect(url_for('admin.manage_teams'))
 
@@ -420,7 +420,7 @@ def delete_team(team_id):
     team_name = team.name
     db.session.delete(team)
     db.session.commit()
-    log_game_action(\"TEAM_DELETED\", details=f\"Team '{team_name}' deleted.\")
+    log_game_action("TEAM_DELETED", details=f"Team '{team_name}' deleted.")
     flash('Team deleted successfully!', 'success')
     return redirect(url_for('admin.manage_teams'))
 
@@ -595,12 +595,12 @@ def manual_assign_level(team_id):
     db.session.commit()
     
     log_game_action(
-        \"MANUAL_LEVEL_ASSIGN\",
+        "MANUAL_LEVEL_ASSIGN",
         team_id=team.id,
-        details=f\"Admin manually moved team from Level {old_level} to Level {new_level}, Q{new_question}.\"
+        details=f"Admin manually moved team from Level {old_level} to Level {new_level}, Q{new_question}."
     )
     
-    flash(f\"Team {team.name} manually moved to Level {new_level}.\", \"success\")
+    flash(f"Team {team.name} manually moved to Level {new_level}.", "success")
     return redirect(request.referrer or url_for('admin.manage_teams'))
 
 # System Settings Routes
@@ -631,8 +631,8 @@ def update_login_key():
     db.session.commit()
     
     log_game_action(
-        \"LOGIN_KEY_UPDATED\",
-        details=f\"Login key changed from '{old_key}' to '{new_key}'.\"
+        "LOGIN_KEY_UPDATED",
+        details=f"Login key changed from '{old_key}' to '{new_key}'."
     )
     
     flash(f'Login key updated successfully to: {new_key}', 'success')
@@ -652,8 +652,8 @@ def toggle_registration():
     
     status = 'opened' if config.registration_enabled else 'closed'
     log_game_action(
-        \"REGISTRATION_TOGGLED\",
-        details=f\"Registration window {status}.\"
+        "REGISTRATION_TOGGLED",
+        details=f"Registration window {status}."
     )
     
     flash(f'Registration window has been {status}!', 'success')
@@ -673,9 +673,9 @@ def regenerate_team_code(team_id):
     db.session.commit()
     
     log_game_action(
-        \"TEAM_CODE_REGENERATED\",
+        "TEAM_CODE_REGENERATED",
         team_id=team.id,
-        details=f\"Registration code regenerated for team '{team.name}' from '{old_code}' to '{new_code}'.\"
+        details=f"Registration code regenerated for team '{team.name}' from '{old_code}' to '{new_code}'."
     )
     
     flash(f'New registration code for {team.name}: {new_code}', 'success')
