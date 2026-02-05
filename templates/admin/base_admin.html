@@ -27,6 +27,20 @@
             <a class="navbar-brand ms-3" href="{{ url_for('admin.dashboard') }}">
                 <i class="bi bi-trophy-fill"></i> Treasure Hunt - Admin Panel
             </a>
+
+            <!-- Game Status Badge in Top Bar -->
+            {% if game_config %}
+            <div class="px-3 py-1 rounded-pill ms-3 d-none d-md-flex align-items-center"
+                style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);">
+                <span
+                    class="badge {% if game_config.game_started %}bg-success{% else %}bg-danger{% endif %} badge-circle me-2"
+                    style="width: 10px; height: 10px; padding: 0;">&nbsp;</span>
+                <span class="text-white small fw-bold">
+                    {% if game_config.game_started %}LIVE{% else %}STOPPED{% endif %}
+                </span>
+            </div>
+            {% endif %}
+
             <div class="ms-auto d-flex align-items-center">
                 <span class="text-white me-3">
                     <i class="bi bi-person-circle"></i> {{ current_user.username }}
@@ -66,8 +80,13 @@
                     <a href="{{ url_for('admin.initialize_game') }}" class="sidebar-subitem">
                         <i class="bi bi-plus-circle"></i> Initialize Game
                     </a>
-                    <a href="{{ url_for('admin.start_game') }}" class="sidebar-subitem">
+                    <a href="{{ url_for('admin.start_game') }}"
+                        class="sidebar-subitem {% if game_config and game_config.game_started %}text-muted{% endif %}">
                         <i class="bi bi-play-fill"></i> Start Game
+                    </a>
+                    <a href="{{ url_for('admin.stop_game') }}"
+                        class="sidebar-subitem {% if not game_config or not game_config.game_started %}text-muted{% endif %}">
+                        <i class="bi bi-stop-fill"></i> Stop Game
                     </a>
                 </div>
             </div>

@@ -101,6 +101,22 @@ def start_game():
     flash('Game started! Level 1 is now active.', 'success')
     return redirect(url_for('admin.dashboard'))
 
+@admin_bp.route('/stop-game')
+@login_required
+@admin_required
+def stop_game():
+    config = GameConfig.query.first()
+    if config:
+        config.game_started = False
+        
+        # Deactivate all levels
+        Level.query.update({Level.is_active: False})
+        
+        db.session.commit()
+        flash('Game stopped successfully.', 'warning')
+    
+    return redirect(url_for('admin.dashboard'))
+
 @admin_bp.route('/start-level/<int:level_number>')
 @login_required
 @admin_required
