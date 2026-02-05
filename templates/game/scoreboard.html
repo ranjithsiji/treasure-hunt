@@ -35,7 +35,14 @@
                                 <i class="bi bi-trophy-fill" style="color: #cd7f32;"></i>
                                 {% endif %}
                             </td>
-                            <td><strong>{{ stat.team.name }}</strong></td>
+                            <td>
+                                <strong>{{ stat.team.name }}</strong>
+                                {% if stat.team.member_names %}
+                                <div class="small text-muted mt-1" style="font-size: 0.75rem; line-height: 1.2;">
+                                    <i class="bi bi-people"></i> {{ stat.team.member_names | replace('\n', ', ') }}
+                                </div>
+                                {% endif %}
+                            </td>
                             <td><span class="badge bg-primary level-badge">Level {{ stat.current_level }}</span></td>
                             <td>{{ stat.completed_questions }}</td>
                             <td>

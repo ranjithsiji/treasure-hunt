@@ -359,6 +359,7 @@
 }
 
 /* Prevent flickering by disabling transitions */
+.modal,
 .note-modal,
 .note-popover,
 .note-dropdown-menu {
