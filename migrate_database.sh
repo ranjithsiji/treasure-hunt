@@ -17,8 +17,10 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
-# Load environment variables
-source .env
+# Load environment variables using export
+set -a
+. .env
+set +a
 
 echo "📊 Database Configuration:"
 echo "  Host: $DB_HOST"
@@ -29,7 +31,7 @@ echo ""
 # Activate virtual environment if it exists
 if [ -d "venv" ]; then
     echo "🔧 Activating virtual environment..."
-    source venv/bin/activate
+    . venv/bin/activate
 fi
 
 echo "🗄️  Creating database tables..."
