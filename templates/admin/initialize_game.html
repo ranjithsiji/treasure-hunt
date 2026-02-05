@@ -114,7 +114,7 @@
                                     Level ${i}
                                     ${isFinal ? '<span class="badge bg-warning badge-custom ms-2">Final</span>' : ''}
                                 </h6>
-                                <div class="admin-form-group mb-0">
+                                <div class="admin-form-group mb-2">
                                     <label for="teams_passing_level_${i}" class="admin-form-label small">Teams Passing</label>
                                     <input type="number" 
                                            class="form-control admin-form-control form-control-sm" 
@@ -126,6 +126,19 @@
                                            required>
                                     <small class="text-muted" style="font-size: 0.7rem;">
                                         ${isFinal ? 'Final level' : `To Level ${i + 1}`}
+                                    </small>
+                                </div>
+                                <div class="admin-form-group mb-0">
+                                    <label for="clues_level_${i}" class="admin-form-label small">Clues Allowed</label>
+                                    <input type="number" 
+                                           class="form-control admin-form-control form-control-sm" 
+                                           id="clues_level_${i}" 
+                                           name="clues_level_${i}" 
+                                           min="0" 
+                                           value="${parseInt($('#clues_per_team').val()) || 10}"
+                                           required>
+                                    <small class="text-muted" style="font-size: 0.7rem;">
+                                        Total clues for Level ${i}
                                     </small>
                                 </div>
                             </div>
@@ -152,6 +165,15 @@
 
             for (let i = 1; i < numLevels; i++) { // Exclude final level
                 $(`#teams_passing_level_${i}`).val(defaultValue);
+            }
+        });
+
+        $('#clues_per_team').on('change input', function () {
+            const defaultValue = parseInt($(this).val()) || 0;
+            const numLevels = parseInt($('#num_levels').val());
+
+            for (let i = 1; i <= numLevels; i++) {
+                $(`#clues_level_${i}`).val(defaultValue);
             }
         });
 

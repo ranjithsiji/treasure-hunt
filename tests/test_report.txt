@@ -1,0 +1,223 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0 -- /usr/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/alphaf42/treasure-hunt
+plugins: anyio-4.12.1
+collecting ... collected 3 items
+
+tests/test_app.py::test_initialization ERROR                             [ 33%]
+tests/test_app.py::test_clue_logic_level_specific ERROR                  [ 66%]
+tests/test_app.py::test_admin_manual_assign ERROR                        [100%]
+
+==================================== ERRORS ====================================
+____________________ ERROR at setup of test_initialization _____________________
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: users
+
+The above exception was the direct cause of the following exception:
+tests/test_app.py:42: in app
+    test_db.session.commit()
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/scoping.py:597: in commit
+    return self._proxied.commit()
+           ^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:2030: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:1311: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:1286: in _prepare_impl
+    self.session.flush()
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.14/site-packages/sqlalchemy/util/langhelpers.py:224: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+/usr/lib64/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
+E   [SQL: INSERT INTO users (username, email, password_hash, is_admin, is_active, team_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: ('admin', 'admin@example.com', 'scrypt:32768:8:1$JiLjRA05QNOcD9iZ$7a19448a1b89ea5240b125ef469f3c24431a84e3e460bac4648088aa5822dc1b9c64ac7d84a97e01f49cc917028303cb658ab7a307bc49131d487df28dfac9e2', 1, 1, None, '2026-02-05 11:07:42.163374')]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+_______________ ERROR at setup of test_clue_logic_level_specific _______________
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: users
+
+The above exception was the direct cause of the following exception:
+tests/test_app.py:42: in app
+    test_db.session.commit()
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/scoping.py:597: in commit
+    return self._proxied.commit()
+           ^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:2030: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:1311: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:1286: in _prepare_impl
+    self.session.flush()
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.14/site-packages/sqlalchemy/util/langhelpers.py:224: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+/usr/lib64/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
+E   [SQL: INSERT INTO users (username, email, password_hash, is_admin, is_active, team_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: ('admin', 'admin@example.com', 'scrypt:32768:8:1$2zXcm94om2VCTl9K$c293a80151951b0493c921d0da532cc9ce3e7f747d953ff0c532d4cdd2e74dc884b44d37a92d0c0170201e2d0a48676619fee34315aa7a3335e3a301c5bc48dc', 1, 1, None, '2026-02-05 11:07:42.997452')]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+__________________ ERROR at setup of test_admin_manual_assign __________________
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlite3.OperationalError: no such table: users
+
+The above exception was the direct cause of the following exception:
+tests/test_app.py:42: in app
+    test_db.session.commit()
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/scoping.py:597: in commit
+    return self._proxied.commit()
+           ^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:2030: in commit
+    trans.commit(_to_root=True)
+<string>:2: in commit
+    ???
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:1311: in commit
+    self._prepare_impl()
+<string>:2: in _prepare_impl
+    ???
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/state_changes.py:137: in _go
+    ret_value = fn(self, *arg, **kw)
+                ^^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:1286: in _prepare_impl
+    self.session.flush()
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:4331: in flush
+    self._flush(objects)
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:4466: in _flush
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+/usr/lib64/python3.14/site-packages/sqlalchemy/util/langhelpers.py:224: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/session.py:4427: in _flush
+    flush_context.execute()
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:466: in execute
+    rec.execute(self)
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/unitofwork.py:642: in execute
+    util.preloaded.orm_persistence.save_obj(
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/persistence.py:93: in save_obj
+    _emit_insert_statements(
+/usr/lib64/python3.14/site-packages/sqlalchemy/orm/persistence.py:1233: in _emit_insert_statements
+    result = connection.execute(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1419: in execute
+    return meth(
+/usr/lib64/python3.14/site-packages/sqlalchemy/sql/elements.py:527: in _execute_on_connection
+    return connection._execute_clauseelement(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1641: in _execute_clauseelement
+    ret = self._execute_context(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1846: in _execute_context
+    return self._exec_single_context(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1986: in _exec_single_context
+    self._handle_dbapi_exception(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:2363: in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/base.py:1967: in _exec_single_context
+    self.dialect.do_execute(
+/usr/lib64/python3.14/site-packages/sqlalchemy/engine/default.py:952: in do_execute
+    cursor.execute(statement, parameters)
+E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
+E   [SQL: INSERT INTO users (username, email, password_hash, is_admin, is_active, team_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)]
+E   [parameters: ('admin', 'admin@example.com', 'scrypt:32768:8:1$NhPdvFfzAtpeJW2u$bb7bafadfaeabbffa67d29977532d9cc642187030a990541071397d222c5942e3065201d10c1edb3568cd351a1869609c40f4bb84cee9717d627edb710e7f348', 1, 1, None, '2026-02-05 11:07:43.766064')]
+E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
+=============================== warnings summary ===============================
+tests/test_app.py::test_initialization
+tests/test_app.py::test_clue_logic_level_specific
+tests/test_app.py::test_admin_manual_assign
+  /usr/lib64/python3.14/site-packages/sqlalchemy/sql/schema.py:3624: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    return util.wrap_callable(lambda ctx: fn(), fn)  # type: ignore
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+ERROR tests/test_app.py::test_initialization - sqlalchemy.exc.OperationalErro...
+ERROR tests/test_app.py::test_clue_logic_level_specific - sqlalchemy.exc.Oper...
+ERROR tests/test_app.py::test_admin_manual_assign - sqlalchemy.exc.Operationa...
+======================== 3 warnings, 3 errors in 2.95s =========================

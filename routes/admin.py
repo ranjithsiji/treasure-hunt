@@ -48,7 +48,14 @@ def dashboard():
 @admin_required
 def initialize_game():
     if request.method == 'POST':
-        # Delete existing configuration
+        # Delete existing data in correct order to avoid foreign key violations
+        from models import ClueUsage, TeamProgress, Clue, QuestionMedia, Question
+        ClueUsage.query.delete()
+        TeamProgress.query.delete()
+        Clue.query.delete()
+        QuestionMedia.query.delete()
+        Question.query.delete()
+        Level.query.delete()
         GameConfig.query.delete()
         
         num_levels = int(request.form.get('num_levels'))
@@ -57,30 +64,38 @@ def initialize_game():
             num_teams=int(request.form.get('num_teams')),
             num_levels=num_levels,
             questions_per_level=int(request.form.get('questions_per_level')),
-            teams_passing_per_level=int(request.form.get('teams_passing_per_level')),  # Keep for backward compatibility
+            teams_passing_per_level=int(request.form.get('teams_passing_per_level')),
             clues_per_team=int(request.form.get('clues_per_team'))
         )
-        
         db.session.add(config)
         
-        # Create levels with individual teams_passing configuration
-        Level.query.delete()
+        # Create levels
         for i in range(1, num_levels + 1):
-            # Get teams_passing for this specific level from form
             teams_passing_key = f'teams_passing_level_{i}'
             teams_passing = int(request.form.get(teams_passing_key, 0))
+            
+            clues_allowed_key = f'clues_level_{i}'
+            clues_allowed = int(request.form.get(clues_allowed_key, config.clues_per_team))
             
             level = Level(
                 level_number=i,
                 name=f"Level {i}",
                 teams_passing=teams_passing,
+                clues_allowed=clues_allowed,
                 is_final=(i == num_levels)
             )
             db.session.add(level)
         
+        # Reset teams
+        from models import Team
+        teams = Team.query.all()
+        for team in teams:
+            team.current_level = 1
+            team.current_question = 1
+        
         db.session.commit()
         log_game_action("INITIALIZE_GAME", details=f"Game initialized with {num_levels} levels.")
-        flash('Game initialized successfully with per-level team passing configuration!', 'success')
+        flash('Game data reset and initialized successfully!', 'success')
         return redirect(url_for('admin.dashboard'))
     
     return render_template('admin/initialize_game.html')
@@ -105,7 +120,6 @@ def start_game():
     # Set clues for all teams
     teams = Team.query.all()
     for team in teams:
-        team.clues_remaining = config.clues_per_team
         team.current_level = 1
         team.current_question = 1
     
@@ -187,6 +201,11 @@ def update_level_config(level_id):
     teams_passing = request.form.get('teams_passing')
     if teams_passing:
         level.teams_passing = int(teams_passing)
+    
+    # Update clues_allowed
+    clues_allowed = request.form.get('clues_allowed')
+    if clues_allowed is not None:
+        level.clues_allowed = int(clues_allowed)
     
     # Update level name if provided
     level_name = request.form.get('level_name')
@@ -433,8 +452,7 @@ def create_team():
     config = GameConfig.query.first()
     team = Team(
         name=team_name,
-        member_names=member_names,
-        clues_remaining=config.clues_per_team if config else 0
+        member_names=member_names
     )
     
     db.session.add(team)
@@ -655,13 +673,10 @@ def manual_assign_level(team_id):
     team = Team.query.get_or_404(team_id)
     new_level = request.form.get('level_number', type=int)
     new_question = request.form.get('question_number', type=int, default=1)
-    new_clues = request.form.get('clues_remaining', type=int)
     
     old_level = team.current_level
     team.current_level = new_level
     team.current_question = new_question
-    if new_clues is not None:
-        team.clues_remaining = new_clues
     db.session.commit()
     
     log_game_action(

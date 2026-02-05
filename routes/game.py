@@ -72,12 +72,20 @@ def dashboard():
     
     used_clue_ids = [uc.clue_id for uc in used_clues]
     
+    # Calculate clues remaining in current level
+    used_in_level = db.session.query(db.func.count(ClueUsage.id)).join(Question).filter(
+        ClueUsage.team_id == team.id,
+        Question.level_id == current_level.id
+    ).scalar()
+    clues_remaining = max(0, current_level.clues_allowed - used_in_level)
+    
     return render_template('game/play.html',
                          team=team,
                          level=current_level,
                          question=current_question,
                          progress=progress,
                          used_clue_ids=used_clue_ids,
+                         clues_remaining=clues_remaining,
                          config=config)
 
 @game_bp.route('/submit-answer', methods=['POST'])
@@ -189,9 +197,18 @@ def get_clue(question_id):
     
     team = current_user.team
     question = Question.query.get_or_404(question_id)
+    level = question.level
     
-    if team.clues_remaining <= 0:
-        return jsonify({'success': False, 'message': 'No clues remaining!'})
+    # Calculate clues used in THIS level
+    used_in_level = db.session.query(db.func.count(ClueUsage.id)).join(Question).filter(
+        ClueUsage.team_id == team.id,
+        Question.level_id == level.id
+    ).scalar()
+    
+    clues_remaining_in_level = max(0, level.clues_allowed - used_in_level)
+    
+    if clues_remaining_in_level <= 0:
+        return jsonify({'success': False, 'message': f'You have used all {level.clues_allowed} clues allowed for Level {level.level_number}.'})
     
     # Get clues for this question
     clues = Clue.query.filter_by(question_id=question_id).order_by(Clue.clue_order).all()
@@ -233,23 +250,27 @@ def get_clue(question_id):
     if progress:
         progress.clues_used += 1
     
-    # Decrease team's remaining clues
-    team.clues_remaining -= 1
-    
     db.session.add(clue_usage)
     db.session.commit()
+    
+    # Recalculate remaining for the response
+    new_used_in_level = db.session.query(db.func.count(ClueUsage.id)).join(Question).filter(
+        ClueUsage.team_id == team.id,
+        Question.level_id == level.id
+    ).scalar()
+    new_remaining = max(0, level.clues_allowed - new_used_in_level)
     
     log_game_action(
         "USE_CLUE", 
         team_id=team.id, 
-        details=f"Clue {next_clue.clue_order} used for Question {question.question_number}."
+        details=f"Clue {next_clue.clue_order} used for Question {question.question_number} in Level {level.level_number}."
     )
     
     return jsonify({
         'success': True,
         'clue': next_clue.clue_text,
         'explanation': next_clue.explanation,
-        'clues_remaining': team.clues_remaining
+        'clues_remaining': new_remaining
     })
 
 @game_bp.route('/join-team', methods=['GET', 'POST'])

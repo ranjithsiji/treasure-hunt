@@ -81,8 +81,8 @@
                     <p><strong>Team:</strong> {{ team.name }}</p>
                     <p><strong>Current Level:</strong> {{ team.current_level }}</p>
                     <p><strong>Current Question:</strong> {{ team.current_question }}</p>
-                    <p><strong>Clues Remaining:</strong>
-                        <span class="badge bg-warning" id="clues-remaining">{{ team.clues_remaining }}</span>
+                    <p><strong>Clues Remaining (Level {{ level.level_number }}):</strong>
+                        <span class="badge bg-warning" id="clues-remaining">{{ clues_remaining }}</span>
                     </p>
                     <hr>
                     <p class="mb-2"><strong><i class="bi bi-person-badge"></i> Team Members:</strong></p>
