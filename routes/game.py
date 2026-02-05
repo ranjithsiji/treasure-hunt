@@ -111,6 +111,36 @@ def submit_answer():
             # Move to next question
             team.current_question += 1
             
+            # Check for level completion and advancement
+            total_questions_in_level = Question.query.filter_by(level_id=question.level_id).count()
+            if team.current_question > total_questions_in_level:
+                current_level = Level.query.get(question.level_id)
+                if not current_level.is_final:
+                    # Count teams already in higher levels
+                    advanced_teams_count = Team.query.filter(Team.current_level > current_level.level_number).count()
+                    
+                    if advanced_teams_count < current_level.teams_passing:
+                        # Team qualifies for the next level!
+                        team.current_level += 1
+                        team.current_question = 1
+                        log_game_action(
+                            "LEVEL_ADVANCE", 
+                            team_id=team.id, 
+                            details=f"Team finished Level {current_level.level_number} and QUALIFIED for Level {team.current_level} (Position: {advanced_teams_count + 1})."
+                        )
+                    else:
+                        log_game_action(
+                            "LEVEL_COMPLETE_NOT_QUALIFIED", 
+                            team_id=team.id, 
+                            details=f"Team finished Level {current_level.level_number} but DID NOT QUALIFY for the next level (All {current_level.teams_passing} slots filled)."
+                        )
+                else:
+                    log_game_action(
+                        "GAME_COMPLETE", 
+                        team_id=team.id, 
+                        details=f"Team has completed the final level and finished the game!"
+                    )
+            
             db.session.commit()
             
             log_game_action(

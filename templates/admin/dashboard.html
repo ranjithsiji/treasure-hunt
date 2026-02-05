@@ -184,6 +184,7 @@
                         <th>Level</th>
                         <th>Name</th>
                         <th>Status</th>
+                        <th>Teams</th>
                         <th>Questions</th>
                         <th>Teams Passing</th>
                         <th>Actions</th>
@@ -204,6 +205,14 @@
                             {% if level.is_final %}
                             <span class="badge bg-warning badge-custom"><i class="bi bi-star-fill"></i> Final</span>
                             {% endif %}
+                        </td>
+                        <td>
+                            {% set level_teams = teams|selectattr('current_level', 'equalto', level.level_number)|list
+                            %}
+                            <a href="{{ url_for('admin.level_teams', level_number=level.level_number) }}"
+                                class="badge bg-primary badge-custom text-decoration-none">
+                                <i class="bi bi-people-fill"></i> {{ level_teams|length }} Teams
+                            </a>
                         </td>
                         <td>
                             <span class="badge bg-info badge-custom">{{ level.questions|length }} Questions</span>
@@ -267,8 +276,26 @@
                     <tr>
                         <td><strong><i class="bi bi-people-fill text-primary"></i> {{ team.name }}</strong></td>
                         <td><span class="badge bg-info badge-custom">{{ team.members|length }} Members</span></td>
-                        <td><span class="badge bg-primary badge-custom">Level {{ team.current_level }}</span></td>
-                        <td><span class="badge bg-secondary badge-custom">Q{{ team.current_question }}</span></td>
+                        <td>
+                            <span class="badge bg-primary badge-custom">Level {{ team.current_level }}</span>
+                            {% set current_lvl_obj = levels|selectattr('level_number', 'equalto',
+                            team.current_level)|first %}
+                            {% if current_lvl_obj %}
+                            {% set q_count = current_lvl_obj.questions|length %}
+                            {% if team.current_question > q_count %}
+                            <span class="badge bg-danger badge-custom d-block mt-1">Eliminated</span>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% set current_lvl_obj = levels|selectattr('level_number', 'equalto',
+                            team.current_level)|first %}
+                            {% if current_lvl_obj and team.current_question > current_lvl_obj.questions|length %}
+                            <span class="badge bg-success badge-custom">Finished</span>
+                            {% else %}
+                            <span class="badge bg-secondary badge-custom">Q{{ team.current_question }}</span>
+                            {% endif %}
+                        </td>
                         <td><span class="badge bg-warning badge-custom"><i class="bi bi-lightbulb-fill"></i> {{
                                 team.clues_remaining }}</span></td>
                         <td>

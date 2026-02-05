@@ -49,6 +49,7 @@
                         <thead>
                             <tr>
                                 <th>Team Name</th>
+                                <th>Current Status</th>
                                 <th>Members List</th>
                                 <th>Accounts</th>
                                 <th>Actions</th>
@@ -57,13 +58,22 @@
                         <tbody>
                             {% for team in teams %}
                             <tr>
+                                <td><strong>{{ team.name }}</strong></td>
                                 <td>
-                                    <strong>{{ team.name }}</strong><br>
                                     <span class="badge bg-primary badge-custom">Level {{ team.current_level }}</span>
+                                    {% set current_lvl_obj = levels|selectattr('level_number', 'equalto',
+                                    team.current_level)|first %}
+                                    {% if current_lvl_obj %}
+                                    {% if team.current_question > current_lvl_obj.questions|length %}
+                                    <span class="badge bg-danger badge-custom d-block mt-1">Eliminated/Finished</span>
+                                    {% else %}
+                                    <div class="mt-1 small text-muted">Question: {{ team.current_question }}</div>
+                                    {% endif %}
+                                    {% endif %}
                                 </td>
                                 <td>
-                                    <small class="text-muted">{{ team.member_names if team.member_names else 'No names
-                                        added' }}</small>
+                                    <div class="small text-muted" style="max-width: 200px; white-space: pre-wrap;">{{
+                                        team.member_names if team.member_names else 'No names added' }}</div>
                                 </td>
                                 <td>
                                     <span class="badge bg-info badge-custom">

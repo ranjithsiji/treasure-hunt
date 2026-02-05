@@ -10,14 +10,33 @@
                 <div class="card-body text-center p-5">
                     {% if level.is_final %}
                     <i class="bi bi-trophy-fill text-warning" style="font-size: 5rem;"></i>
-                    <h2 class="mt-4">🎉 Congratulations! 🎉</h2>
-                    <p class="lead text-success"><strong>You've completed the final level!</strong></p>
-                    <p class="text-muted">Your team has successfully completed the treasure hunt!</p>
+                    <div class="mt-4">
+                        <span class="badge bg-warning text-dark mb-2">ULTIMATE CHAMPION</span>
+                        <h2>🎉 Congratulations! 🎉</h2>
+                    </div>
+                    <p class="lead text-success"><strong>You've completed the treasure hunt!</strong></p>
+                    <p class="text-muted">Your team has successfully conquered all levels. Well done!</p>
                     {% else %}
-                    <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
-                    <h2 class="mt-4">Level {{ level.level_number }} Complete!</h2>
-                    <p class="lead text-muted">Great job! You've completed all questions in this level.</p>
-                    <p class="text-muted">Please wait for the administrator to activate the next level.</p>
+                    {% if team.current_level > level.level_number %}
+                    <i class="bi bi-star-fill text-warning" style="font-size: 5rem;"></i>
+                    <div class="mt-4">
+                        <span class="badge bg-success mb-2">QUALIFIED</span>
+                        <h2>Level {{ level.level_number }} Complete!</h2>
+                    </div>
+                    <p class="lead text-success"><strong>Great job! You've qualified for Level {{ team.current_level
+                            }}!</strong></p>
+                    <p class="text-muted">Please wait for the administrator to activate the next level for your team.
+                    </p>
+                    {% else %}
+                    <i class="bi bi-check-circle-fill text-info" style="font-size: 5rem;"></i>
+                    <div class="mt-4">
+                        <span class="badge bg-danger mb-2">DID NOT QUALify</span>
+                        <h2>Level {{ level.level_number }} Finished</h2>
+                    </div>
+                    <p class="lead text-danger"><strong>You finished Level {{ level.level_number }}, but did not qualify
+                            for the next level.</strong></p>
+                    <p class="text-muted">Only the first few teams to finish can advance. Better luck next time!</p>
+                    {% endif %}
                     {% endif %}
 
                     <div class="mt-4">

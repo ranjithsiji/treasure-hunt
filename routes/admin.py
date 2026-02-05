@@ -414,8 +414,10 @@ def delete_clue(clue_id):
 @login_required
 @admin_required
 def manage_teams():
+    from models import Level
     teams = Team.query.all()
-    return render_template('admin/manage_teams.html', teams=teams)
+    levels = Level.query.all()
+    return render_template('admin/manage_teams.html', teams=teams, levels=levels)
 
 @admin_bp.route('/create-team', methods=['POST'])
 @login_required
@@ -594,3 +596,11 @@ def game_logs():
     teams = Team.query.all()
     
     return render_template('admin/game_logs.html', logs=logs, teams=teams, selected_team_id=team_id)
+
+@admin_bp.route('/level/<int:level_number>/teams')
+@login_required
+@admin_required
+def level_teams(level_number):
+    level = Level.query.filter_by(level_number=level_number).first_or_404()
+    teams = Team.query.filter_by(current_level=level_number).all()
+    return render_template('admin/level_teams.html', level=level, teams=teams)
