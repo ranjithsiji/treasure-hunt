@@ -119,20 +119,23 @@ def start_game():
         flash(f'Not enough teams. Need {config.num_teams}, have {teams_count}.', 'warning')
         return redirect(url_for('admin.manage_teams'))
     
-    # Check if Level 1 has questions
-    level1 = Level.query.filter_by(level_number=1).first()
-    if not level1 or level1.questions.count() == 0:
-        flash('Level 1 has no questions. Please add questions first.', 'warning')
-        return redirect(url_for('admin.manage_levels'))
+    # Check if levels have questions
+    levels = Level.query.all()
+    for level in levels:
+        if level.questions.count() == 0:
+            flash(f'Level {level.level_number} has no questions. Please add questions to all levels first.', 'warning')
+            return redirect(url_for('admin.manage_levels'))
     
     config.game_started = True
-    level1.is_active = True
+    for level in levels:
+        level.is_active = True
+        
     config.current_level = 1
     db.session.commit()
     
-    log_game_action("GAME_STARTED", details="Game officially started. Level 1 activated.")
+    log_game_action("GAME_STARTED", details="Game officially started. All levels activated simultaneously.")
     
-    flash('Game has been started! Level 1 is now active.', 'success')
+    flash('Game has been started! All levels are now active and will auto-close when slots are full.', 'success')
     return redirect(url_for('admin.dashboard'))
 
 @admin_bp.route('/stop-game')
@@ -157,25 +160,7 @@ def stop_game():
 @login_required
 @admin_required
 def start_level(level_number):
-    level = Level.query.filter_by(level_number=level_number).first()
-    if not level:
-        flash('Level not found.', 'danger')
-        return redirect(url_for('admin.dashboard'))
-    
-    # Deactivate all other levels
-    all_levels = Level.query.all()
-    for l in all_levels:
-        l.is_active = False
-    
-    level.is_active = True
-    config = GameConfig.query.first()
-    if config:
-        config.current_level = level_number
-    
-    db.session.commit()
-    
-    log_game_action("LEVEL_STARTED", details=f"Level {level_number} activated by admin.")
-    flash(f'Level {level_number} has been activated.', 'success')
+    flash('Manual level activation is disabled. All levels start simultaneously when the game starts.', 'info')
     return redirect(url_for('admin.dashboard'))
 
 @admin_bp.route('/stop-level/<int:level_number>')
@@ -186,8 +171,8 @@ def stop_level(level_number):
     if level:
         level.is_active = False
         db.session.commit()
-        log_game_action("LEVEL_STOPPED", details=f"Level {level_number} deactivated by admin.")
-        flash(f'Level {level_number} has been deactivated.', 'info')
+        log_game_action("LEVEL_STOPPED_MANUAL", details=f"Level {level_number} manually deactivated by admin.")
+        flash(f'Level {level_number} has been manually deactivated.', 'info')
     
     return redirect(url_for('admin.dashboard'))
 

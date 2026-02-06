@@ -197,32 +197,45 @@
                         <td><strong>{{ level.name }}</strong></td>
                         <td>
                             {% if level.is_active %}
-                            <span class="badge bg-success badge-custom"><i class="bi bi-check-circle"></i> Active</span>
+                            <span class="badge bg-success badge-custom"><i class="bi bi-unlock-fill"></i> OPEN</span>
                             {% else %}
-                            <span class="badge bg-secondary badge-custom"><i class="bi bi-pause-circle"></i>
-                                Inactive</span>
+                            <span class="badge bg-danger badge-custom"><i class="bi bi-lock-fill"></i> CLOSED</span>
                             {% endif %}
                             {% if level.is_final %}
                             <span class="badge bg-warning badge-custom"><i class="bi bi-star-fill"></i> Final</span>
                             {% endif %}
                         </td>
                         <td>
-                            {% set level_teams = teams|selectattr('current_level', 'equalto', level.level_number)|list
+                            {% set current_teams = teams|selectattr('current_level', 'equalto', level.level_number)|list
                             %}
-                            <a href="{{ url_for('admin.level_teams', level_number=level.level_number) }}"
-                                class="badge bg-primary badge-custom text-decoration-none">
-                                <i class="bi bi-people-fill"></i> {{ level_teams|length }} Teams
-                            </a>
+                            {% set passed_teams = teams|selectattr('current_level', 'gt', level.level_number)|list %}
+                            <div class="small">
+                                <span class="text-primary"><i class="bi bi-door-open"></i> <strong>{{
+                                        current_teams|length }}</strong> inside</span><br>
+                                <span class="text-success"><i class="bi bi-check-all"></i> <strong>{{
+                                        passed_teams|length }}</strong> passed</span>
+                            </div>
                         </td>
                         <td>
                             <span class="badge bg-info badge-custom">{{ level.questions|length }} Questions</span>
                         </td>
                         <td>
                             {% if level.is_final %}
-                            <span class="badge bg-dark badge-custom">Final Level</span>
+                            <div class="small">
+                                <strong>{{ level.teams_passing }}</strong> Winners allowed
+                            </div>
                             {% else %}
-                            <span class="badge bg-warning badge-custom"><i class="bi bi-people-fill"></i> {{
-                                level.teams_passing }} teams</span>
+                            <div class="progress" style="height: 20px;">
+                                {% set pct = (passed_teams|length / level.teams_passing * 100)|int if
+                                level.teams_passing > 0 else 0 %}
+                                <div class="progress-bar {% if pct >= 100 %}bg-danger{% elif pct >= 80 %}bg-warning{% else %}bg-success{% endif %}"
+                                    role="progressbar" style="width: {{ pct }}%;"
+                                    aria-valuenow="{{ passed_teams|length }}" aria-valuemin="0"
+                                    aria-valuemax="{{ level.teams_passing }}">
+                                    {{ passed_teams|length }}/{{ level.teams_passing }}
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ level.teams_passing - passed_teams|length }} slots left</small>
                             {% endif %}
                         </td>
                         <td>
@@ -231,15 +244,11 @@
                                     class="btn btn-sm btn-info action-btn">
                                     <i class="bi bi-question-circle"></i> Manage
                                 </a>
-                                {% if not level.is_active %}
-                                <a href="{{ url_for('admin.start_level', level_number=level.level_number) }}"
-                                    class="btn btn-sm btn-success action-btn">
-                                    <i class="bi bi-play-fill"></i> Start
-                                </a>
-                                {% else %}
+                                {% if level.is_active %}
                                 <a href="{{ url_for('admin.stop_level', level_number=level.level_number) }}"
-                                    class="btn btn-sm btn-danger action-btn">
-                                    <i class="bi bi-stop-fill"></i> Stop
+                                    class="btn btn-sm btn-danger action-btn"
+                                    onclick="return confirm('Emergency Lock: Are you sure you want to manually CLOSE this level?')">
+                                    <i class="bi bi-lock-fill"></i> Lock
                                 </a>
                                 {% endif %}
                             </div>

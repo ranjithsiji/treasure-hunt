@@ -25,10 +25,12 @@
                             <i class="bi bi-{% if level.is_final %}star-fill{% else %}circle-fill{% endif %}"></i>
                             Level {{ level.level_number }}
                             {% if level.is_active %}
-                            <span class="badge bg-light text-success float-end">Active</span>
+                            <span class="badge bg-light text-success float-end">OPEN</span>
+                            {% else %}
+                            <span class="badge bg-light text-danger float-end">CLOSED</span>
                             {% endif %}
                             {% if level.is_final %}
-                            <span class="badge bg-dark float-end">Final</span>
+                            <span class="badge bg-dark float-end me-1">Final</span>
                             {% endif %}
                         </h5>
                     </div>
@@ -91,17 +93,6 @@
                                     class="btn btn-info btn-sm">
                                     <i class="bi bi-question-circle"></i> Manage Questions
                                 </a>
-                                {% if not level.is_active %}
-                                <a href="{{ url_for('admin.start_level', level_number=level.level_number) }}"
-                                    class="btn btn-success btn-sm">
-                                    <i class="bi bi-play-fill"></i> Start Level
-                                </a>
-                                {% else %}
-                                <a href="{{ url_for('admin.stop_level', level_number=level.level_number) }}"
-                                    class="btn btn-danger btn-sm">
-                                    <i class="bi bi-stop-fill"></i> Stop Level
-                                </a>
-                                {% endif %}
                             </div>
                         </form>
                     </div>
@@ -133,11 +124,11 @@
                             <td><strong>{{ level.name }}</strong></td>
                             <td>
                                 {% if level.is_active %}
-                                <span class="badge bg-success badge-custom"><i class="bi bi-check-circle"></i>
-                                    Active</span>
+                                <span class="badge bg-success badge-custom"><i class="bi bi-unlock-fill"></i>
+                                    Open</span>
                                 {% else %}
-                                <span class="badge bg-secondary badge-custom"><i class="bi bi-pause-circle"></i>
-                                    Inactive</span>
+                                <span class="badge bg-danger badge-custom"><i class="bi bi-lock-fill"></i>
+                                    Closed</span>
                                 {% endif %}
                             </td>
                             <td><span class="badge bg-info badge-custom">{{ level.questions|length }} Questions</span>

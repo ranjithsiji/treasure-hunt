@@ -35,7 +35,19 @@ def dashboard():
     
     current_level = Level.query.filter_by(level_number=team.current_level).first()
     
-    if not current_level or not current_level.is_active:
+    if not current_level:
+        flash('Level not configuration mismatch. Contact admin.', 'danger')
+        return redirect(url_for('game.join_team'))
+
+    # Get total questions in this level
+    total_questions = Question.query.filter_by(level_id=current_level.id).count()
+    
+    # Check if team has completed all questions in this level
+    if team.current_question > total_questions:
+        return render_template('game/level_complete.html', team=team, level=current_level)
+
+    # Only check is_active if they are still playing the level
+    if not current_level.is_active:
         return render_template('game/level_locked.html', team=team, current_level=team.current_level)
     
     # Get current question
@@ -43,10 +55,6 @@ def dashboard():
         level_id=current_level.id,
         question_number=team.current_question
     ).first()
-    
-    if not current_question:
-        # Team has completed all questions in this level
-        return render_template('game/level_complete.html', team=team, level=current_level)
     
     # Get progress for current question
     progress = TeamProgress.query.filter_by(
@@ -127,22 +135,28 @@ def submit_answer():
                 current_level_obj = Level.query.get(question.level_id)
                 
                 if not current_level_obj.is_final:
-                    # Robust count of teams that have already advanced BEYOND this level
-                    # Or are in this level but have finished it (to avoid race conditions)
-                    advanced_teams = Team.query.filter(Team.current_level > current_level_obj.level_number).all()
-                    advanced_count = len(advanced_teams)
+                    # Count teams that have already advanced BEYOND this level
+                    advanced_teams_count = Team.query.filter(Team.current_level > current_level_obj.level_number).count()
                     
-                    if advanced_count < current_level_obj.teams_passing:
+                    if advanced_teams_count < current_level_obj.teams_passing:
                         # Team qualifies!
-                        old_lvl = team.current_level
                         team.current_level = current_level_obj.level_number + 1
                         team.current_question = 1
+                        
+                        # NEW: Check if this was the last slot and auto-close the level
+                        if advanced_teams_count + 1 >= current_level_obj.teams_passing:
+                            current_level_obj.is_active = False
+                            log_game_action(
+                                "LEVEL_AUTO_CLOSED", 
+                                details=f"Level {current_level_obj.level_number} auto-closed as all {current_level_obj.teams_passing} qualification slots are filled."
+                            )
+                        
                         db.session.commit() # Immediate commit for safety
                         
                         log_game_action(
                             "LEVEL_ADVANCE", 
                             team_id=team.id, 
-                            details=f"Team qualified for Level {team.current_level} (Slot {advanced_count + 1}/{current_level_obj.teams_passing} filled)."
+                            details=f"Team qualified for Level {team.current_level} (Slot {advanced_teams_count + 1}/{current_level_obj.teams_passing} filled)."
                         )
                     else:
                         log_game_action(
@@ -151,11 +165,26 @@ def submit_answer():
                             details=f"Team finished Level {current_level_obj.level_number} but failed to qualify (All {current_level_obj.teams_passing} slots filled)."
                         )
                 else:
+                    # Final level logic: Count how many teams have finished the final level
+                    finished_count = Team.query.filter(
+                        Team.current_level == current_level_obj.level_number,
+                        Team.current_question > total_questions_in_level
+                    ).count()
+                    
                     log_game_action(
                         "GAME_COMPLETE", 
                         team_id=team.id, 
-                        details=f"Team has completed the final level!"
+                        details=f"Team has completed the final level! (Rank: {finished_count + 1})"
                     )
+                    
+                    # Auto-close final level if a limit is set
+                    if current_level_obj.teams_passing > 0 and finished_count + 1 >= current_level_obj.teams_passing:
+                        current_level_obj.is_active = False
+                        log_game_action(
+                            "LEVEL_AUTO_CLOSED", 
+                            details=f"Final Level {current_level_obj.level_number} auto-closed as {current_level_obj.teams_passing} teams have finished."
+                        )
+
             
             db.session.commit()
             
