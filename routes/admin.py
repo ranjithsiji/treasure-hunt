@@ -368,7 +368,7 @@ def edit_question(question_id):
                         unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{i}_{filename}"
                         upload_folder = os.path.join('static', 'uploads', 'media')
                         os.makedirs(upload_folder, exist_ok=True)
-                        file_path = os.path.join('static', 'uploads', unique_filename)
+                        file_path = os.path.join(upload_folder, unique_filename)
                         file.save(file_path)
                         
                         # Create QuestionMedia record
