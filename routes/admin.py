@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from functools import wraps
-from models import User, Team, Level, Question, Clue, TeamProgress, ClueUsage, GameConfig, GameLog
+from models import User, Team, Level, Question, Clue, TeamProgress, ClueUsage, GameConfig, GameLog, QuestionMedia
 from app import db
 from datetime import datetime
 import os
@@ -272,6 +272,37 @@ def add_question(level_id):
         db.session.add(question)
         db.session.commit()
         
+        # Handle batch media uploads
+        num_media = int(request.form.get('num_media', 0))
+        if num_media > 0:
+            for i in range(num_media):
+                media_type = request.form.get(f'media_type_{i}')
+                media_caption = request.form.get(f'media_caption_{i}', '')
+                
+                # Check if file was uploaded
+                file_key = f'media_file_{i}'
+                if file_key in request.files:
+                    file = request.files[file_key]
+                    if file and file.filename:
+                        filename = secure_filename(file.filename)
+                        unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{i}_{filename}"
+                        upload_folder = os.path.join('static', 'uploads', 'media')
+                        os.makedirs(upload_folder, exist_ok=True)
+                        file_path = os.path.join(upload_folder, unique_filename)
+                        file.save(file_path)
+                        
+                        # Create QuestionMedia record
+                        media = QuestionMedia(
+                            question_id=question.id,
+                            media_type=media_type,
+                            media_url=f"uploads/media/{unique_filename}",
+                            media_caption=media_caption,
+                            display_order=i
+                        )
+                        db.session.add(media)
+            
+            db.session.commit()
+        
         log_game_action(
             "QUESTION_ADDED",
             details=f"Question {next_number} added to Level {level.level_number}."
@@ -309,6 +340,46 @@ def edit_question(question_id):
         # Handle image removal
         if request.form.get('remove_image') == 'true':
             question.media_url = None
+        
+        # Handle batch media deletion
+        delete_media_ids = request.form.getlist('delete_media')
+        if delete_media_ids:
+            for media_id in delete_media_ids:
+                media = QuestionMedia.query.get(int(media_id))
+                if media and media.question_id == question.id:
+                    db.session.delete(media)
+        
+        # Handle new batch media uploads
+        num_media = int(request.form.get('num_media', 0))
+        if num_media > 0:
+            # Get current max display_order
+            max_order = db.session.query(db.func.max(QuestionMedia.display_order)).filter_by(question_id=question.id).scalar() or 0
+            
+            for i in range(num_media):
+                media_type = request.form.get(f'media_type_{i}')
+                media_caption = request.form.get(f'media_caption_{i}', '')
+                
+                # Check if file was uploaded
+                file_key = f'media_file_{i}'
+                if file_key in request.files:
+                    file = request.files[file_key]
+                    if file and file.filename:
+                        filename = secure_filename(file.filename)
+                        unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{i}_{filename}"
+                        upload_folder = os.path.join('static', 'uploads', 'media')
+                        os.makedirs(upload_folder, exist_ok=True)
+                        file_path = os.path.join('static', 'uploads', unique_filename)
+                        file.save(file_path)
+                        
+                        # Create QuestionMedia record
+                        media = QuestionMedia(
+                            question_id=question.id,
+                            media_type=media_type,
+                            media_url=f"uploads/media/{unique_filename}",
+                            media_caption=media_caption,
+                            display_order=max_order + i + 1
+                        )
+                        db.session.add(media)
         
         db.session.commit()
         
