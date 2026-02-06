@@ -177,10 +177,10 @@
                                         </div>
                                     </div>
                                     {% if media.media_type == 'image' %}
-                                    <img src="{{ media.media_url }}" class="img-fluid rounded mb-2"
+                                    <img src="/static/{{ media.media_url }}" class="img-fluid rounded mb-2"
                                         style="max-height: 120px; width: 100%; object-fit: cover;">
                                     {% elif media.media_type == 'video' %}
-                                    <video src="{{ media.media_url }}" class="img-fluid rounded mb-2"
+                                    <video src="/static/{{ media.media_url }}" class="img-fluid rounded mb-2"
                                         style="max-height: 120px; width: 100%;" controls></video>
                                     {% endif %}
                                     {% if media.media_caption %}
