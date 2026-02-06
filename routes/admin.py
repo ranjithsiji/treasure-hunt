@@ -236,13 +236,14 @@ def add_question(level_id):
         question_text = request.form.get('question_text')
         answer = request.form.get('answer')
         points = int(request.form.get('points', 10))
+        question_type = request.form.get('question_type', 'text')  # Default to 'text'
         
         # Get the next question number
         max_question = Question.query.filter_by(level_id=level_id).order_by(Question.question_number.desc()).first()
         next_number = (max_question.question_number + 1) if max_question else 1
         
         # Handle image upload
-        image_path = None
+        media_url = None
         if 'question_image' in request.files:
             file = request.files['question_image']
             if file and file.filename:
@@ -253,15 +254,19 @@ def add_question(level_id):
                 os.makedirs(upload_folder, exist_ok=True)
                 file_path = os.path.join(upload_folder, unique_filename)
                 file.save(file_path)
-                image_path = f"uploads/{unique_filename}"
+                media_url = f"uploads/{unique_filename}"
+                # If image uploaded, set question_type to image or mixed
+                if question_type == 'text':
+                    question_type = 'image'
         
         question = Question(
             level_id=level_id,
             question_number=next_number,
+            question_type=question_type,
             question_text=question_text,
             answer=answer,
             points=points,
-            image_path=image_path
+            media_url=media_url
         )
         
         db.session.add(question)
@@ -299,11 +304,11 @@ def edit_question(question_id):
                 os.makedirs(upload_folder, exist_ok=True)
                 file_path = os.path.join(upload_folder, unique_filename)
                 file.save(file_path)
-                question.image_path = f"uploads/{unique_filename}"
+                question.media_url = f"uploads/{unique_filename}"
         
         # Handle image removal
         if request.form.get('remove_image') == 'true':
-            question.image_path = None
+            question.media_url = None
         
         db.session.commit()
         
