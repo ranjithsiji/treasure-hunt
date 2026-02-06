@@ -59,16 +59,6 @@
                                 </small>
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">
-                                    <i class="bi bi-lightbulb-fill"></i> Clues Allowed Per Team
-                                </label>
-                                <input type="number" class="form-control" name="clues_allowed"
-                                    value="{{ level.clues_allowed }}" min="0" required>
-                                <small class="text-muted">
-                                    Number of clues each team can use in this level.
-                                </small>
-                            </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Statistics</label>
@@ -112,7 +102,6 @@
                             <th>Name</th>
                             <th>Status</th>
                             <th>Questions</th>
-                            <th>Clues/Team</th>
                             <th>Teams Passing</th>
                             <th>Type</th>
                         </tr>
@@ -133,8 +122,6 @@
                             </td>
                             <td><span class="badge bg-info badge-custom">{{ level.questions|length }} Questions</span>
                             </td>
-                            <td><span class="badge bg-warning badge-custom"><i class="bi bi-lightbulb-fill"></i> {{
-                                    level.clues_allowed }} Clues</span></td>
                             <td>
                                 {% if level.is_final %}
                                 <span class="badge bg-dark badge-custom">Final Level</span>

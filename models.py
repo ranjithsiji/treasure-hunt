@@ -46,19 +46,14 @@ class Team(db.Model):
 
     @property
     def clues_remaining(self):
-        """Calculates clues remaining in the current level dynamically"""
-        # We need local imports to avoid circular dependency
-        from models import Level, Question, ClueUsage
-        current_lvl = Level.query.filter_by(level_number=self.current_level).first()
-        if not current_lvl:
+        """Calculates clues remaining for the total game statically from config"""
+        from models import GameConfig, ClueUsage
+        config = GameConfig.query.first()
+        if not config:
             return 0
             
-        used_in_level = db.session.query(db.func.count(ClueUsage.id)).join(Question).filter(
-            ClueUsage.team_id == self.id,
-            Question.level_id == current_lvl.id
-        ).scalar() or 0
-        
-        return max(0, current_lvl.clues_allowed - used_in_level)
+        total_used = ClueUsage.query.filter_by(team_id=self.id).count()
+        return max(0, config.clues_per_team - total_used)
 
 class GameConfig(db.Model):
     __tablename__ = 'game_config'
@@ -84,7 +79,6 @@ class Level(db.Model):
     teams_passing = db.Column(db.Integer, default=0)  # Number of teams that can pass to next level
     is_final = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=False)
-    clues_allowed = db.Column(db.Integer, default=0) # Clues allowed per team for this level
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     questions = db.relationship('Question', back_populates='level', cascade='all, delete-orphan')

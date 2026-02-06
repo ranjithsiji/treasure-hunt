@@ -86,8 +86,7 @@ def initialize_game():
                     level_number=i,
                     name=f"Level {i}",
                     teams_passing=teams_passing_per_level,
-                    is_final=(i == num_levels),
-                    clues_allowed=clues_per_team
+                    is_final=(i == num_levels)
                 )
                 db.session.add(level)
         
@@ -191,13 +190,12 @@ def update_level_config(level_id):
     
     level.name = request.form.get('name')
     level.teams_passing = int(request.form.get('teams_passing'))
-    level.clues_allowed = int(request.form.get('clues_allowed'))
     
     db.session.commit()
     
     log_game_action(
         "LEVEL_CONFIG_UPDATED",
-        details=f"Level {level.level_number} config updated: {level.teams_passing} teams passing, {level.clues_allowed} clues allowed."
+        details=f"Level {level.level_number} config updated: {level.teams_passing} teams passing."
     )
     
     flash(f'Level {level.level_number} configuration updated successfully!', 'success')

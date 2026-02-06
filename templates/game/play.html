@@ -81,7 +81,7 @@
                     <p><strong>Team:</strong> {{ team.name }}</p>
                     <p><strong>Current Level:</strong> {{ team.current_level }}</p>
                     <p><strong>Current Question:</strong> {{ team.current_question }}</p>
-                    <p><strong>Clues Remaining (Level {{ level.level_number }}):</strong>
+                    <p><strong>Clues Remaining (Total Game):</strong>
                         <span class="badge bg-warning" id="clues-remaining">{{ clues_remaining }}</span>
                     </p>
                     <hr>
@@ -122,7 +122,7 @@
                         {% else %}
                         <div class="alert alert-light border text-center py-2 mb-0">
                             <small class="text-muted"><i class="bi bi-info-circle"></i> You have used all your clues for
-                                this level.</small>
+                                the entire game.</small>
                         </div>
                         {% endif %}
                     </div>
