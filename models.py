@@ -16,7 +16,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
-    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=True)
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id', ondelete='CASCADE'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     team = db.relationship('Team', back_populates='members')
@@ -140,7 +140,7 @@ class TeamProgress(db.Model):
     __tablename__ = 'team_progress'
     
     id = db.Column(db.Integer, primary_key=True)
-    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id', ondelete='CASCADE'), nullable=False)
     question_id = db.Column(db.Integer, db.ForeignKey('questions.id'), nullable=False)
     level_number = db.Column(db.Integer, nullable=False)
     started_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -156,7 +156,7 @@ class ClueUsage(db.Model):
     __tablename__ = 'clue_usage'
     
     id = db.Column(db.Integer, primary_key=True)
-    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id', ondelete='CASCADE'), nullable=False)
     question_id = db.Column(db.Integer, db.ForeignKey('questions.id'), nullable=False)
     clue_id = db.Column(db.Integer, db.ForeignKey('clues.id'), nullable=False)
     used_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -169,8 +169,8 @@ class GameLog(db.Model):
     __tablename__ = 'game_logs'
     
     id = db.Column(db.Integer, primary_key=True)
-    team_id = db.Column(db.Integer, db.ForeignKey('teams.id'), nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    team_id = db.Column(db.Integer, db.ForeignKey('teams.id', ondelete='CASCADE'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
     action = db.Column(db.String(255), nullable=False)
     details = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
