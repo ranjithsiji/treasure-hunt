@@ -128,19 +128,6 @@
                                         ${isFinal ? 'Final level' : `To Level ${i + 1}`}
                                     </small>
                                 </div>
-                                <div class="admin-form-group mb-0">
-                                    <label for="clues_level_${i}" class="admin-form-label small">Clues Allowed</label>
-                                    <input type="number" 
-                                           class="form-control admin-form-control form-control-sm" 
-                                           id="clues_level_${i}" 
-                                           name="clues_level_${i}" 
-                                           min="0" 
-                                           value="${parseInt($('#clues_per_team').val()) || 10}"
-                                           required>
-                                    <small class="text-muted" style="font-size: 0.7rem;">
-                                        Total clues for Level ${i}
-                                    </small>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -168,14 +155,6 @@
             }
         });
 
-        $('#clues_per_team').on('change input', function () {
-            const defaultValue = parseInt($(this).val()) || 0;
-            const numLevels = parseInt($('#num_levels').val());
-
-            for (let i = 1; i <= numLevels; i++) {
-                $(`#clues_level_${i}`).val(defaultValue);
-            }
-        });
 
         // Form validation
         $('#initGameForm').on('submit', function (e) {
