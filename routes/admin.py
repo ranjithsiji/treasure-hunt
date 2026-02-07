@@ -121,7 +121,7 @@ def start_game():
     # Check if levels have questions
     levels = Level.query.all()
     for level in levels:
-        if level.questions.count() == 0:
+        if len(level.questions) == 0:
             flash(f'Level {level.level_number} has no questions. Please add questions to all levels first.', 'warning')
             return redirect(url_for('admin.manage_levels'))
     
