@@ -90,6 +90,9 @@ def initialize_game():
                 )
                 db.session.add(level)
         
+        # Clear all game logs on initialization
+        GameLog.query.delete()
+        
         db.session.commit()
         
         log_game_action(
@@ -481,6 +484,19 @@ def update_team(team_id):
 def delete_team(team_id):
     team = Team.query.get_or_404(team_id)
     team_name = team.name
+    # First, delete all associated records that point to this team
+    # This acts as a manual cascade to ensure we don't hit IntegrityErrors
+    GameLog.query.filter_by(team_id=team.id).delete()
+    ClueUsage.query.filter_by(team_id=team.id).delete()
+    TeamProgress.query.filter_by(team_id=team.id).delete()
+    
+    # We also need to handle Users that belong to this team
+    # Users also have GameLogs, so we clean those up first too
+    team_member_ids = [u.id for u in team.members]
+    if team_member_ids:
+        GameLog.query.filter(GameLog.user_id.in_(team_member_ids)).delete(synchronize_session=False)
+        User.query.filter(User.id.in_(team_member_ids)).delete(synchronize_session=False)
+
     db.session.delete(team)
     db.session.commit()
     log_game_action("TEAM_DELETED", details=f"Team '{team_name}' deleted.")
@@ -555,6 +571,9 @@ def delete_user(user_id):
         return redirect(url_for('admin.manage_users'))
     
     username = user.username
+    # Manually delete associated game logs to avoid IntegrityError
+    GameLog.query.filter_by(user_id=user.id).delete()
+    
     db.session.delete(user)
     db.session.commit()
     flash(f'User {username} deleted successfully!', 'success')
@@ -606,6 +625,15 @@ def game_logs():
     
     teams = Team.query.all()
     return render_template('admin/game_logs.html', logs=logs, teams=teams, selected_team_id=team_id)
+
+@admin_bp.route('/clear-game-logs', methods=['POST'])
+@login_required
+@admin_required
+def clear_game_logs():
+    GameLog.query.delete()
+    db.session.commit()
+    flash('All game logs have been cleared.', 'success')
+    return redirect(url_for('admin.game_logs'))
 
 @admin_bp.route('/level/<int:level_number>/teams')
 @login_required
