@@ -294,7 +294,11 @@ def add_question(level_id):
         flash(f'Question {next_number} added successfully!', 'success')
         return redirect(url_for('admin.manage_questions', level_id=level_id))
     
-    return render_template('admin/add_edit_question.html', level=level, question=None)
+    # For GET request, calculate next number
+    max_question = Question.query.filter_by(level_id=level_id).order_by(Question.question_number.desc()).first()
+    next_question_number = (max_question.question_number + 1) if max_question else 1
+    
+    return render_template('admin/add_edit_question.html', level=level, question=None, next_question_number=next_question_number)
 
 @admin_bp.route('/question/<int:question_id>/edit', methods=['GET', 'POST'])
 @login_required

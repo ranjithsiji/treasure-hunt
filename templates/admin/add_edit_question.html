@@ -33,7 +33,10 @@
                                 <input type="number" class="form-control admin-form-control" id="question_number"
                                     name="question_number"
                                     value="{% if question %}{{ question.question_number }}{% else %}{{ next_question_number }}{% endif %}"
-                                    min="1" required>
+                                    min="1" {% if not question %}readonly{% endif %} required>
+                                {% if not question %}
+                                <div class="form-text text-muted small">Automatic numbering</div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-4">
