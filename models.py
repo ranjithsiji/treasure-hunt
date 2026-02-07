@@ -20,6 +20,7 @@ class User(UserMixin, db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     team = db.relationship('Team', back_populates='members')
+    logs = db.relationship('GameLog', back_populates='user', cascade='all, delete-orphan')
     
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -41,8 +42,10 @@ class Team(db.Model):
     member_names = db.Column(db.Text, nullable=True)  # Comma-separated list of team member names
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    members = db.relationship('User', back_populates='team')
+    members = db.relationship('User', back_populates='team', cascade='all, delete-orphan')
     progress = db.relationship('TeamProgress', back_populates='team', cascade='all, delete-orphan')
+    clue_usages = db.relationship('ClueUsage', back_populates='team', cascade='all, delete-orphan')
+    logs = db.relationship('GameLog', back_populates='team', cascade='all, delete-orphan')
 
     @property
     def clues_remaining(self):
@@ -158,7 +161,7 @@ class ClueUsage(db.Model):
     clue_id = db.Column(db.Integer, db.ForeignKey('clues.id'), nullable=False)
     used_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    team = db.relationship('Team')
+    team = db.relationship('Team', back_populates='clue_usages')
     question = db.relationship('Question', back_populates='clue_usages')
     clue = db.relationship('Clue', back_populates='clue_usages')
 
@@ -172,5 +175,5 @@ class GameLog(db.Model):
     details = db.Column(db.Text, nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     
-    team = db.relationship('Team')
-    user = db.relationship('User')
+    team = db.relationship('Team', back_populates='logs')
+    user = db.relationship('User', back_populates='logs')
