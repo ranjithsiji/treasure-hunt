@@ -188,7 +188,7 @@ def manage_levels():
 def update_level_config(level_id):
     level = Level.query.get_or_404(level_id)
     
-    level.name = request.form.get('name')
+    level.name = request.form.get('level_name')
     level.teams_passing = int(request.form.get('teams_passing'))
     
     db.session.commit()
