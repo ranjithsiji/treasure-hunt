@@ -27,13 +27,45 @@
 
                         {% if question.media_url %}
                         {% if question.question_type == 'image' %}
-                        <img src="{{ question.media_url }}" alt="Question Image" class="question-media img-fluid">
+                        <img src="/static/{{ question.media_url }}" alt="Question Image"
+                            class="question-media img-fluid mb-3">
                         {% elif question.question_type == 'video' %}
-                        <video controls class="question-media w-100">
-                            <source src="{{ question.media_url }}" type="video/mp4">
+                        <video controls class="question-media w-100 mb-3">
+                            <source src="/static/{{ question.media_url }}" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>
                         {% endif %}
+                        {% endif %}
+
+                        {% if question.media_files %}
+                        <div class="additional-media mt-3">
+                            {% for media in question.media_files | sort(attribute='display_order') %}
+                            <div class="media-item mb-3 p-2 bg-light rounded border">
+                                {% if media.media_type == 'image' %}
+                                <img src="/static/{{ media.media_url }}" alt="{{ media.media_caption or 'Attachment' }}"
+                                    class="img-fluid rounded shadow-sm">
+                                {% elif media.media_type == 'video' %}
+                                <video src="/static/{{ media.media_url }}" class="w-100 rounded shadow-sm"
+                                    controls></video>
+                                {% elif media.media_type == 'audio' %}
+                                <div class="audio-container p-2 text-center">
+                                    <audio src="/static/{{ media.media_url }}" class="w-100" controls></audio>
+                                </div>
+                                {% elif media.media_type == 'document' %}
+                                <div class="document-container p-3 text-center">
+                                    <a href="/static/{{ media.media_url }}" target="_blank"
+                                        class="btn btn-outline-primary">
+                                        <i class="bi bi-file-earmark-arrow-down"></i> Download Attachment
+                                    </a>
+                                </div>
+                                {% endif %}
+                                {% if media.media_caption %}
+                                <p class="text-muted small mt-2 mb-0"><i class="bi bi-info-circle"></i> {{
+                                    media.media_caption }}</p>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
                         {% endif %}
                     </div>
 
