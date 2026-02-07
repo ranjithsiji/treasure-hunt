@@ -69,7 +69,11 @@
                                 </p>
                                 {% endif %}
                             </div>
-                            <div class="action-btn-group ms-3">
+                            <div class="action-btn-group ms-3 d-flex gap-2">
+                                <a href="{{ url_for('admin.edit_clue', clue_id=clue.id) }}"
+                                    class="btn btn-sm btn-warning action-btn" title="Edit Clue">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
                                 <form method="POST" action="{{ url_for('admin.delete_clue', clue_id=clue.id) }}"
                                     onsubmit="return confirm('Are you sure you want to delete this clue?');">
                                     <button type="submit" class="btn btn-sm btn-danger action-btn" title="Delete Clue">

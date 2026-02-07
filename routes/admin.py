@@ -426,6 +426,24 @@ def manage_clues(question_id):
     clues = Clue.query.filter_by(question_id=question_id).order_by(Clue.clue_order).all()
     return render_template('admin/manage_clues.html', question=question, clues=clues)
 
+@admin_bp.route('/clue/<int:clue_id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_clue(clue_id):
+    clue = Clue.query.get_or_404(clue_id)
+    question = clue.question
+    
+    if request.method == 'POST':
+        clue.clue_text = request.form.get('clue_text')
+        clue.explanation = request.form.get('explanation')
+        clue.clue_order = int(request.form.get('clue_order'))
+        
+        db.session.commit()
+        flash('Clue updated successfully!', 'success')
+        return redirect(url_for('admin.manage_clues', question_id=question.id))
+    
+    return render_template('admin/edit_clue.html', clue=clue, question=question)
+
 @admin_bp.route('/clue/<int:clue_id>/delete', methods=['POST'])
 @login_required
 @admin_required
