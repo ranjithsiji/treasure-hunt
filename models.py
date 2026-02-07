@@ -35,7 +35,7 @@ class Team(db.Model):
     registration_code = db.Column(db.String(20), unique=True, nullable=True)  # Unique code for registration
     code_used = db.Column(db.Boolean, default=False)  # Track if code has been used
     current_level = db.Column(db.Integer, default=1)
-    current_question = db.Column(db.Integer, default=0)
+    current_question = db.Column(db.Integer, default=1)
     is_active = db.Column(db.Boolean, default=True)
     total_time = db.Column(db.Integer, default=0)  # in seconds
     member_names = db.Column(db.Text, nullable=True)  # Comma-separated list of team member names

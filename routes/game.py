@@ -56,6 +56,18 @@ def dashboard():
         question_number=team.current_question
     ).first()
     
+    # Fallback for new teams or out-of-sync questions
+    if not current_question:
+        if team.current_question == 0 or team.current_question == 1:
+            current_question = Question.query.filter_by(level_id=current_level.id).order_by(Question.question_number).first()
+            if current_question:
+                team.current_question = current_question.question_number
+                db.session.commit()
+    
+    if not current_question:
+        flash('Question not found. Contact admin.', 'danger')
+        return redirect(url_for('game.join_team'))
+    
     # Get progress for current question
     progress = TeamProgress.query.filter_by(
         team_id=team.id,
