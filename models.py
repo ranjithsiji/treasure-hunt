@@ -177,3 +177,40 @@ class GameLog(db.Model):
     
     team = db.relationship('Team', back_populates='logs')
     user = db.relationship('User', back_populates='logs')
+
+
+class SiteContent(db.Model):
+    """Stores the editable content for the public home page."""
+    __tablename__ = 'site_content'
+
+    id = db.Column(db.Integer, primary_key=True)
+    heading = db.Column(db.String(255), nullable=False, default='Welcome to Treasure Hunt')
+    subheading = db.Column(db.String(255), nullable=True, default='An exciting adventure awaits!')
+    body_text = db.Column(db.Text, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Page(db.Model):
+    """Custom public pages managed by admin."""
+    __tablename__ = 'pages'
+
+    id = db.Column(db.Integer, primary_key=True)
+    page_id = db.Column(db.String(100), unique=True, nullable=False)  # Slug / identifier
+    url = db.Column(db.String(255), unique=True, nullable=False)      # URL path e.g. /about
+    title = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.Text, nullable=True)
+    is_published = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class MenuItem(db.Model):
+    """Navigation menu items shown in the public navigation bar."""
+    __tablename__ = 'menu_items'
+
+    id = db.Column(db.Integer, primary_key=True)
+    position = db.Column(db.Integer, nullable=False, default=0)  # Sort order
+    text = db.Column(db.String(100), nullable=False)             # Display label
+    link = db.Column(db.String(255), nullable=False)             # URL or path
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)

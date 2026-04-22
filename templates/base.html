@@ -27,6 +27,13 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% for item in menu_items %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ item.link }}">{{ item.text }}</a>
+                    </li>
+                    {% endfor %}
+                </ul>
                 <ul class="navbar-nav ms-auto">
                     {% if current_user.is_authenticated %}
                     <li class="nav-item">
@@ -74,6 +81,7 @@
             </div>
         </div>
     </nav>
+
 
     <!-- Flash Messages -->
     <div class="container mt-3">

@@ -166,6 +166,29 @@
                 </div>
             </div>
 
+            <!-- Website Content -->
+            <div class="sidebar-item-group">
+                <a href="#websiteSubmenu" class="sidebar-item" data-bs-toggle="collapse" data-bs-parent="#sidebarMenu">
+                    <i class="bi bi-globe"></i>
+                    <span>Website Content</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </a>
+                <div class="collapse sidebar-submenu {% if request.endpoint in ['admin.site_content','admin.manage_pages','admin.add_page','admin.edit_page','admin.manage_menu'] %}show{% endif %}" id="websiteSubmenu" data-bs-parent="#sidebarMenu">
+                    <a href="{{ url_for('admin.site_content') }}"
+                        class="sidebar-subitem {% if request.endpoint == 'admin.site_content' %}active{% endif %}">
+                        <i class="bi bi-pencil-square"></i> Edit Home Page
+                    </a>
+                    <a href="{{ url_for('admin.manage_pages') }}"
+                        class="sidebar-subitem {% if request.endpoint in ['admin.manage_pages','admin.add_page','admin.edit_page'] %}active{% endif %}">
+                        <i class="bi bi-file-earmark-text"></i> Manage Pages
+                    </a>
+                    <a href="{{ url_for('admin.manage_menu') }}"
+                        class="sidebar-subitem {% if request.endpoint == 'admin.manage_menu' %}active{% endif %}">
+                        <i class="bi bi-list-nested"></i> Manage Menu
+                    </a>
+                </div>
+            </div>
+
             <!-- System Settings -->
             <a href="{{ url_for('admin.system_settings') }}"
                 class="sidebar-item {% if request.endpoint == 'admin.system_settings' %}active{% endif %}">

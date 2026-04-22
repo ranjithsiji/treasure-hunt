@@ -1,0 +1,75 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Edit Home Page - Admin{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h1 class="h3 fw-bold"><i class="bi bi-pencil-square text-primary"></i> Edit Home Page Content</h1>
+        <p class="text-muted">Update the heading, subheading, and body text displayed on the public home page.</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('public.home') }}" target="_blank" class="btn btn-outline-secondary">
+            <i class="bi bi-eye"></i> Preview Home Page
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-house-fill"></i> Home Page Messages</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.site_content') }}">
+                    <div class="mb-4">
+                        <label for="heading" class="form-label fw-semibold">
+                            <i class="bi bi-type-h1"></i> Heading
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="heading" name="heading"
+                            value="{{ content.heading if content else '' }}"
+                            placeholder="e.g. Welcome to Treasure Hunt"
+                            maxlength="255" required>
+                        <div class="form-text">Main title displayed on the hero section.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="subheading" class="form-label fw-semibold">
+                            <i class="bi bi-type-h2"></i> Subheading
+                        </label>
+                        <input type="text" class="form-control" id="subheading" name="subheading"
+                            value="{{ content.subheading if content else '' }}"
+                            placeholder="e.g. Embark on an exciting adventure!"
+                            maxlength="255">
+                        <div class="form-text">Subtitle shown just below the heading.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="body_text" class="form-label fw-semibold">
+                            <i class="bi bi-text-paragraph"></i> Body Text
+                        </label>
+                        <textarea class="form-control" id="body_text" name="body_text" rows="6"
+                            placeholder="Optional additional text or HTML shown in the hero area…">{{ content.body_text if content else '' }}</textarea>
+                        <div class="form-text">Supports basic HTML. Shown below the subheading.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        {% if content %}
+                        <small class="text-muted">
+                            <i class="bi bi-clock-history"></i>
+                            Last updated: {{ content.updated_at.strftime('%d %b %Y, %H:%M') if content.updated_at else 'N/A' }}
+                        </small>
+                        {% else %}
+                        <small class="text-muted">No content saved yet — defaults will be shown.</small>
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-save"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

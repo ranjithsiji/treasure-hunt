@@ -21,12 +21,14 @@ def create_app():
     # Create upload folder if it doesn't exist
     os.makedirs(os.path.join(app.root_path, 'static/uploads'), exist_ok=True)
     
-    # Context processor to make game_config available in all templates
+    # Context processor to make game_config, menu_items, site_content available in all templates
     @app.context_processor
-    def inject_game_config():
-        from models import GameConfig
+    def inject_globals():
+        from models import GameConfig, MenuItem, SiteContent
         game_config = GameConfig.query.first()
-        return dict(game_config=game_config)
+        menu_items = MenuItem.query.filter_by(is_active=True).order_by(MenuItem.position).all()
+        site_content = SiteContent.query.first()
+        return dict(game_config=game_config, menu_items=menu_items, site_content=site_content)
     
     # Register blueprints
     from routes.auth import auth_bp
