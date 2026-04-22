@@ -36,8 +36,18 @@ def login():
             if not user.is_active:
                 flash('Your account has been deactivated. Please contact an administrator.', 'warning')
                 return render_template('login.html')
+            
+            # Check if already logged in elsewhere
+            from datetime import datetime
+            if user.is_online and user.last_seen and (datetime.utcnow() - user.last_seen).total_seconds() < 300:
+                flash('You are already logged in on another device. Please wait 5 minutes of inactivity or log out from the other device.', 'danger')
+                return render_template('login.html')
                 
             login_user(user)
+            user.is_online = True
+            user.last_seen = datetime.utcnow()
+            db.session.commit()
+            
             next_page = request.args.get('next')
             
             if user.is_admin:
@@ -111,6 +121,8 @@ def register():
 @auth_bp.route('/logout')
 @login_required
 def logout():
+    current_user.is_online = False
+    db.session.commit()
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('public.home'))

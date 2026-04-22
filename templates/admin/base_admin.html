@@ -203,13 +203,17 @@
                     <span>Reports & Analytics</span>
                     <i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <div class="collapse sidebar-submenu" id="reportsSubmenu" data-bs-parent="#sidebarMenu">
-                    <a href="{{ url_for('game.scoreboard') }}" class="sidebar-subitem">
+                <div class="collapse sidebar-submenu {% if request.endpoint in ['game.scoreboard', 'admin.game_logs', 'admin.logged_in_users'] %}show{% endif %}" id="reportsSubmenu" data-bs-parent="#sidebarMenu">
+                    <a href="{{ url_for('game.scoreboard') }}" class="sidebar-subitem {% if request.endpoint == 'game.scoreboard' %}active{% endif %}">
                         <i class="bi bi-trophy"></i> Scoreboard
                     </a>
                     <a href="{{ url_for('admin.game_logs') }}"
                         class="sidebar-subitem {% if request.endpoint == 'admin.game_logs' %}active{% endif %}">
                         <i class="bi bi-journal-text"></i> Game Logs
+                    </a>
+                    <a href="{{ url_for('admin.logged_in_users') }}"
+                        class="sidebar-subitem {% if request.endpoint == 'admin.logged_in_users' %}active{% endif %}">
+                        <i class="bi bi-people"></i> Logged In Users
                     </a>
                 </div>
             </div>

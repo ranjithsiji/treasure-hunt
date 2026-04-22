@@ -1090,3 +1090,17 @@ def delete_menu_item(item_id):
     db.session.commit()
     flash(f'Menu item "{text}" deleted.', 'success')
     return redirect(url_for('admin.manage_menu'))
+
+# ─────────────────────────────────────────────────────────────
+# Reports
+# ─────────────────────────────────────────────────────────────
+
+@admin_bp.route('/reports/logged-in-users')
+@login_required
+@admin_required
+def logged_in_users():
+    from datetime import datetime, timedelta
+    cutoff = datetime.utcnow() - timedelta(minutes=5)
+    # Consider users online if is_online is True AND last_seen is within the last 5 minutes
+    active_users = User.query.filter(User.is_online == True, User.last_seen >= cutoff).order_by(User.last_seen.desc()).all()
+    return render_template('admin/logged_in_users.html', active_users=active_users)

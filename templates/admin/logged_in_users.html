@@ -1,0 +1,73 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Logged In Users - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-people-fill"></i> Logged In Users</h1>
+        <p class="text-muted">Users active in the last 5 minutes</p>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="admin-card">
+    <div class="admin-card-header bg-primary d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-person-check-fill"></i> Active Users ({{ active_users|length }})</span>
+        <button onclick="location.reload()" class="btn btn-sm btn-light">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+        </button>
+    </div>
+    <div class="admin-card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Team</th>
+                        <th>Last Seen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in active_users %}
+                    <tr>
+                        <td>
+                            <i class="bi bi-person-circle text-success me-2"></i>
+                            <strong>{{ user.username }}</strong>
+                            {% if user.is_admin %}
+                            <span class="badge bg-danger ms-1">Admin</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.team %}
+                            <span class="badge bg-info">{{ user.team.name }}</span>
+                            {% else %}
+                            <span class="text-muted">No Team</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if user.last_seen %}
+                            {{ user.last_seen.strftime('%Y-%m-%d %H:%M:%S UTC') }}
+                            {% else %}
+                            N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">
+                            <i class="bi bi-people mb-2" style="font-size: 2rem;"></i>
+                            <p class="mb-0">No users are currently logged in.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

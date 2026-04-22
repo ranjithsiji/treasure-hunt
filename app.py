@@ -35,6 +35,18 @@ def create_app():
             site_content = g.site_content,
         )
 
+    @app.before_request
+    def update_last_seen():
+        from flask_login import current_user
+        from datetime import datetime, timedelta
+        if current_user.is_authenticated:
+            now = datetime.utcnow()
+            # Only update if last_seen is missing or older than 1 minute to save DB writes
+            if not current_user.last_seen or (now - current_user.last_seen).total_seconds() > 60:
+                current_user.last_seen = now
+                current_user.is_online = True
+                db.session.commit()
+
     # Register blueprints
     from routes.auth import auth_bp
     from routes.admin import admin_bp
