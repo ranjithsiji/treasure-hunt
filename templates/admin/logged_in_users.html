@@ -29,6 +29,7 @@
                         <th>Email</th>
                         <th>Team</th>
                         <th>Last Seen</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -54,6 +55,17 @@
                             {{ user.last_seen.strftime('%Y-%m-%d %H:%M:%S UTC') }}
                             {% else %}
                             N/A
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not user.is_admin %}
+                            <form method="POST" action="{{ url_for('admin.force_logout_user', user_id=user.id) }}" onsubmit="return confirm('Force logout {{ user.username }}?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-box-arrow-right"></i> Force Logout
+                                </button>
+                            </form>
+                            {% else %}
+                            <span class="text-muted">—</span>
                             {% endif %}
                         </td>
                     </tr>
