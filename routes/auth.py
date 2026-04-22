@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+import uuid
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session as flask_session
 from flask_login import login_user, logout_user, login_required, current_user
 from models import User, Team
 from app import db
@@ -37,16 +38,21 @@ def login():
                 flash('Your account has been deactivated. Please contact an administrator.', 'warning')
                 return render_template('login.html')
             
-            # Check if already logged in elsewhere
+            # Check if already logged in elsewhere (admins are exempt — multiple sessions allowed)
             from datetime import datetime
-            if user.is_online and user.last_seen and (datetime.utcnow() - user.last_seen).total_seconds() < 300:
+            if not user.is_admin and user.is_online and user.last_seen and (datetime.utcnow() - user.last_seen).total_seconds() < 300:
                 flash('You are already logged in on another device. Please wait 5 minutes of inactivity or log out from the other device.', 'danger')
                 return render_template('login.html')
                 
-            login_user(user)
             user.is_online = True
             user.last_seen = datetime.utcnow()
+            if not user.is_admin:
+                token = str(uuid.uuid4())
+                user.session_token = token
             db.session.commit()
+            login_user(user)
+            if not user.is_admin:
+                flask_session['session_token'] = token
             
             next_page = request.args.get('next')
             
@@ -122,7 +128,9 @@ def register():
 @login_required
 def logout():
     current_user.is_online = False
+    current_user.session_token = None
     db.session.commit()
     logout_user()
+    flask_session.pop('session_token', None)
     flash('You have been logged out.', 'info')
     return redirect(url_for('public.home'))
