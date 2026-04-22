@@ -37,15 +37,30 @@ def create_app():
 
     @app.before_request
     def update_last_seen():
-        from flask_login import current_user
-        from datetime import datetime, timedelta
+        from flask import session as flask_session, redirect, url_for
+        from flask_login import current_user, logout_user
+        from datetime import datetime
         if current_user.is_authenticated:
+            # Admins are exempt — they may have multiple concurrent sessions
+            if not current_user.is_admin and current_user.session_token and flask_session.get('session_token') != current_user.session_token:
+                logout_user()
+                flask_session.clear()
+                return redirect(url_for('auth.login'))
             now = datetime.utcnow()
             # Only update if last_seen is missing or older than 1 minute to save DB writes
             if not current_user.last_seen or (now - current_user.last_seen).total_seconds() > 60:
                 current_user.last_seen = now
                 current_user.is_online = True
                 db.session.commit()
+
+    # On startup, clear all is_online flags — any prior sessions are now invalid
+    with app.app_context():
+        try:
+            from models import User
+            db.session.execute(db.text('UPDATE users SET is_online = 0, session_token = NULL'))
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
 
     # Register blueprints
     from routes.auth import auth_bp
