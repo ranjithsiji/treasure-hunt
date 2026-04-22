@@ -71,9 +71,10 @@
                         <label for="content" class="form-label fw-semibold">
                             <i class="bi bi-text-paragraph"></i> Page Content
                         </label>
-                        <textarea class="form-control" id="content" name="content" rows="12"
-                            placeholder="Enter the page content here. HTML is supported.">{{ page.content if page else '' }}</textarea>
-                        <div class="form-text">Supports HTML for rich formatting (headings, bold, lists, links, etc).</div>
+                        <div class="summernote-container">
+                            <textarea class="form-control" id="content" name="content" rows="12">{{ page.content if page else '' }}</textarea>
+                        </div>
+                        <div class="form-text">Use the rich text editor for formatting — headings, bold, lists, links, images, etc.</div>
                     </div>
 
                     <div class="mb-4">
@@ -97,4 +98,80 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet">
+<style>
+    .summernote-container {
+        margin-top: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+    .note-editor.note-frame {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,.05);
+        overflow: visible !important;
+    }
+    .note-modal-backdrop { z-index: 10000 !important; }
+    .note-modal          { z-index: 10001 !important; position: fixed !important; transition: none !important; animation: none !important; }
+    .note-popover        { z-index: 10002 !important; position: absolute !important; transition: none !important; animation: none !important; }
+    .note-dropdown-menu  { z-index: 10003 !important; position: absolute !important; transition: none !important; animation: none !important; }
+    .note-tooltip        { z-index: 10004 !important; }
+    .note-editor.fullscreen {
+        z-index: 9999 !important;
+        position: fixed !important;
+        top: 0 !important; left: 0 !important;
+        width: 100% !important; height: 100% !important;
+    }
+    .note-editor.fullscreen .note-editable { background-color: #fff !important; }
+    .card-body { overflow: visible !important; }
+    .card      { overflow: visible !important; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.js"></script>
+<script>
+$(document).ready(function () {
+    $('#content').summernote({
+        height: 450,
+        minHeight: 300,
+        maxHeight: 1200,
+        placeholder: 'Write your page content here. Use the toolbar for headings, images, links and more…',
+        dialogsInBody: true,
+        disableDragAndDrop: false,
+        toolbar: [
+            ['style',    ['style']],
+            ['font',     ['bold', 'italic', 'underline', 'clear']],
+            ['fontname', ['fontname']],
+            ['color',    ['color']],
+            ['para',     ['ul', 'ol', 'paragraph']],
+            ['table',    ['table']],
+            ['insert',   ['link', 'picture', 'video', 'hr']],
+            ['view',     ['fullscreen', 'codeview', 'help']]
+        ],
+        fontNames: ['Arial','Arial Black','Comic Sans MS','Courier New','Helvetica','Impact','Tahoma','Times New Roman','Verdana'],
+        popover: {
+            image: [
+                ['image', ['resizeFull','resizeHalf','resizeQuarter','resizeNone']],
+                ['float', ['floatLeft','floatRight','floatNone']],
+                ['remove',['removeMedia']]
+            ],
+            link:  [['link', ['linkDialogShow','unlink']]],
+            table: [
+                ['add',   ['addRowDown','addRowUp','addColLeft','addColRight']],
+                ['delete',['deleteRow','deleteCol','deleteTable']]
+            ]
+        },
+        callbacks: {
+            onInit: function () {
+                $('.note-editable').css('background-color', '#fff');
+                $(this).parent().find('.note-modal').appendTo('body');
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

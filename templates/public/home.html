@@ -6,20 +6,18 @@
 <div class="home-animation">
     <div class="hero-section">
         <div class="container">
-            <div class="brand-container">
-                <img src="{{ url_for('static', filename='images/tharang-logo.png') }}" alt="Tharang 2K26"
-                    class="brand-logo" />
-                <div class="brand-info">
-                    <h1 class="brand-title">THARANG 2K26</h1>
-                    <p class="brand-subtitle">MODEL TECHNICAL HIGHER SECONDARY SCHOOL, KAPRASSERY<br />7 - 8 February
-                        2026</p>
-                </div>
-            </div>
 
             <div class="hero-content">
-                <h2 class="hero-title"><i class="bi bi-gem"></i> Welcome to Treasure Hunt</h2>
-                <p class="hero-description">Embark on an exciting adventure! Solve puzzles, find clues, and compete
-                    with other teams.</p>
+                <h2 class="hero-title">
+                    <i class="bi bi-gem"></i>
+                    {{ site_content.heading if site_content and site_content.heading else 'Welcome to Treasure Hunt' }}
+                </h2>
+                <p class="hero-description">
+                    {{ site_content.subheading if site_content and site_content.subheading else 'Embark on an exciting adventure! Solve puzzles, find clues, and compete with other teams.' }}
+                </p>
+                {% if site_content and site_content.body_text %}
+                <div class="hero-body-text mt-3">{{ site_content.body_text | safe }}</div>
+                {% endif %}
 
                 <div class="hero-buttons mt-4">
                     {% if current_user.is_authenticated %}

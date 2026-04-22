@@ -47,64 +47,101 @@ def dashboard():
                          levels=levels,
                          teams=teams)
 
+def _safe_int(value, default: int = 0, minimum: int = 0) -> int:
+    """Parse an integer from a form value safely, clamped to a minimum."""
+    try:
+        return max(minimum, int(value))
+    except (TypeError, ValueError):
+        return default
+
+
 @admin_bp.route('/initialize-game', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def initialize_game():
     if request.method == 'POST':
-        num_teams = int(request.form.get('num_teams'))
-        num_levels = int(request.form.get('num_levels'))
-        questions_per_level = int(request.form.get('questions_per_level'))
-        teams_passing_per_level = int(request.form.get('teams_passing_per_level'))
-        clues_per_team = int(request.form.get('clues_per_team'))
-        
-        # Check if game config already exists
+        # Issue #7 — safe parsing; no more uncaught ValueError on bad input
+        num_teams           = _safe_int(request.form.get('num_teams'),           minimum=1)
+        num_levels          = _safe_int(request.form.get('num_levels'),           minimum=1)
+        questions_per_level = _safe_int(request.form.get('questions_per_level'), minimum=1)
+        teams_passing_default = _safe_int(request.form.get('teams_passing_per_level'), minimum=1)
+        clues_per_team      = _safe_int(request.form.get('clues_per_team'),      minimum=0)
+
+        if not all([num_teams, num_levels, questions_per_level, teams_passing_default]):
+            flash('Invalid configuration values — all fields except clues must be ≥ 1.', 'danger')
+            return redirect(url_for('admin.initialize_game'))
+
+        # ── GameConfig ────────────────────────────────────────────────────────
         config = GameConfig.query.first()
         if config:
-            # Update existing config
-            config.num_teams = num_teams
-            config.num_levels = num_levels
-            config.questions_per_level = questions_per_level
-            config.teams_passing_per_level = teams_passing_per_level
-            config.clues_per_team = clues_per_team
+            config.num_teams            = num_teams
+            config.num_levels           = num_levels
+            config.questions_per_level  = questions_per_level
+            config.teams_passing_per_level = teams_passing_default
+            config.clues_per_team       = clues_per_team
         else:
-            # Create new config
             config = GameConfig(
                 num_teams=num_teams,
                 num_levels=num_levels,
                 questions_per_level=questions_per_level,
-                teams_passing_per_level=teams_passing_per_level,
-                clues_per_team=clues_per_team
+                teams_passing_per_level=teams_passing_default,
+                clues_per_team=clues_per_team,
             )
             db.session.add(config)
-        
-        # Create levels if they don't exist
-        existing_levels = Level.query.count()
-        if existing_levels < num_levels:
-            for i in range(existing_levels + 1, num_levels + 1):
-                level = Level(
-                    level_number=i,
-                    name=f"Level {i}",
-                    teams_passing=teams_passing_per_level,
-                    is_final=(i == num_levels)
-                )
-                db.session.add(level)
-        
-        # Clear all game logs on initialization
-        GameLog.query.delete()
-        
+
+        # ── Level reconciliation (Issue #8) ───────────────────────────────────
+        existing_count = Level.query.count()
+
+        # Remove extra levels that are no longer needed (cascades questions too)
+        if existing_count > num_levels:
+            Level.query.filter(Level.level_number > num_levels).delete()
+
+        # Add any new levels that are missing
+        for i in range(existing_count + 1, num_levels + 1):
+            # Issue #10 — read per-level override from the dynamic form fields
+            per_level_passing = _safe_int(
+                request.form.get(f'teams_passing_level_{i}'),
+                default=teams_passing_default,
+                minimum=0,
+            )
+            level = Level(
+                level_number=i,
+                name=f"Level {i}",
+                teams_passing=per_level_passing,
+                is_final=(i == num_levels),
+            )
+            db.session.add(level)
+
+        # Refresh is_final flag on all retained levels (Issue #8)
+        for level in Level.query.filter(Level.level_number <= num_levels).all():
+            level.is_final = (level.level_number == num_levels)
+
+        # ── Game logs (Issue #9) ──────────────────────────────────────────────
+        # Only wipe logs when the game has not been started yet to avoid
+        # silent data loss on trivial config changes.
+        log_note = ""
+        if not config.game_started:
+            log_count = GameLog.query.count()
+            GameLog.query.delete()
+            log_note = f" {log_count} pre-game log(s) cleared."
+
         db.session.commit()
-        
+
         log_game_action(
             "GAME_INITIALIZED",
-            details=f"Game initialized with {num_levels} levels, {questions_per_level} questions per level."
+            details=(
+                f"Game initialized — {num_levels} levels, "
+                f"{questions_per_level} questions/level, "
+                f"{num_teams} teams, {clues_per_team} clues/team.{log_note}"
+            ),
         )
-        
+
         flash('Game configuration saved successfully!', 'success')
         return redirect(url_for('admin.dashboard'))
-    
+
     config = GameConfig.query.first()
     return render_template('admin/initialize_game.html', config=config)
+
 
 @admin_bp.route('/start-game')
 @login_required

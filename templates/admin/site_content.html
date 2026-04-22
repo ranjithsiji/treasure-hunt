@@ -49,9 +49,10 @@
                         <label for="body_text" class="form-label fw-semibold">
                             <i class="bi bi-text-paragraph"></i> Body Text
                         </label>
-                        <textarea class="form-control" id="body_text" name="body_text" rows="6"
-                            placeholder="Optional additional text or HTML shown in the hero area…">{{ content.body_text if content else '' }}</textarea>
-                        <div class="form-text">Supports basic HTML. Shown below the subheading.</div>
+                        <div class="summernote-container">
+                            <textarea class="form-control" id="body_text" name="body_text" rows="6">{{ content.body_text if content else '' }}</textarea>
+                        </div>
+                        <div class="form-text">Optional rich text shown below the subheading on the home page. Supports headings, bold, links and more.</div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
@@ -72,4 +73,47 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.css" rel="stylesheet">
+<style>
+    .summernote-container { margin-top: 0.5rem; position: relative; z-index: 1; }
+    .note-editor.note-frame { border: 1px solid #dee2e6; border-radius: 8px; overflow: visible !important; }
+    .note-modal-backdrop { z-index: 10000 !important; }
+    .note-modal          { z-index: 10001 !important; position: fixed !important; transition: none !important; animation: none !important; }
+    .note-popover        { z-index: 10002 !important; position: absolute !important; transition: none !important; animation: none !important; }
+    .note-dropdown-menu  { z-index: 10003 !important; transition: none !important; animation: none !important; }
+    .note-editor.fullscreen { z-index: 9999 !important; position: fixed !important; top:0; left:0; width:100% !important; height:100% !important; }
+    .card-body, .card    { overflow: visible !important; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.9.0/dist/summernote-lite.min.js"></script>
+<script>
+$(document).ready(function () {
+    $('#body_text').summernote({
+        height: 250,
+        minHeight: 150,
+        maxHeight: 600,
+        placeholder: 'Optional extra text shown below the subheading on the home page…',
+        dialogsInBody: true,
+        toolbar: [
+            ['style',  ['style']],
+            ['font',   ['bold', 'italic', 'underline', 'clear']],
+            ['color',  ['color']],
+            ['para',   ['ul', 'ol', 'paragraph']],
+            ['insert', ['link', 'picture', 'hr']],
+            ['view',   ['fullscreen', 'codeview']]
+        ],
+        callbacks: {
+            onInit: function () {
+                $('.note-editable').css('background-color', '#fff');
+                $(this).parent().find('.note-modal').appendTo('body');
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
