@@ -309,39 +309,47 @@ def manage_questions(level_id):
     questions = Question.query.filter_by(level_id=level_id).order_by(Question.question_number).all()
     return render_template('admin/manage_questions.html', level=level, questions=questions)
 
+def _unique_filename(original_filename):
+    """Generate a collision-safe filename using a random hex prefix (L8 fix)."""
+    ext = os.path.splitext(secure_filename(original_filename))[1]
+    return f"{secrets.token_hex(12)}{ext}"
+
+
 @admin_bp.route('/level/<int:level_id>/questions/add', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def add_question(level_id):
     level = Level.query.get_or_404(level_id)
-    
+
     if request.method == 'POST':
-        question_text = request.form.get('question_text')
-        answer = request.form.get('answer')
-        points = int(request.form.get('points', 10))
-        question_type = request.form.get('question_type', 'text')  # Default to 'text'
-        
-        # Get the next question number
-        max_question = Question.query.filter_by(level_id=level_id).order_by(Question.question_number.desc()).first()
-        next_number = (max_question.question_number + 1) if max_question else 1
-        
-        # Handle image upload
+        # L4 fix: validate required fields and use safe int parsing
+        question_text = (request.form.get('question_text') or '').strip()
+        answer = (request.form.get('answer') or '').strip()
+        if not question_text or not answer:
+            flash('Question text and answer are required.', 'danger')
+            return redirect(url_for('admin.add_question', level_id=level_id))
+
+        points = _safe_int(request.form.get('points'), default=10, minimum=0)
+        question_type = request.form.get('question_type', 'text')
+        num_media = _safe_int(request.form.get('num_media'), default=0, minimum=0)
+
+        # Next question number (MAX+1)
+        max_q = Question.query.filter_by(level_id=level_id).order_by(Question.question_number.desc()).first()
+        next_number = (max_q.question_number + 1) if max_q else 1
+
+        # L8 fix: uuid-based filenames — no 1-second collision risk
         media_url = None
         if 'question_image' in request.files:
             file = request.files['question_image']
             if file and file.filename:
-                filename = secure_filename(file.filename)
-                # Create unique filename
-                unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                unique_filename = _unique_filename(file.filename)
                 upload_folder = os.path.join('static', 'uploads')
                 os.makedirs(upload_folder, exist_ok=True)
-                file_path = os.path.join(upload_folder, unique_filename)
-                file.save(file_path)
+                file.save(os.path.join(upload_folder, unique_filename))
                 media_url = f"uploads/{unique_filename}"
-                # If image uploaded, set question_type to image or mixed
                 if question_type == 'text':
                     question_type = 'image'
-        
+
         question = Question(
             level_id=level_id,
             question_number=next_number,
@@ -349,55 +357,37 @@ def add_question(level_id):
             question_text=question_text,
             answer=answer,
             points=points,
-            media_url=media_url
+            media_url=media_url,
         )
-        
         db.session.add(question)
         db.session.commit()
-        
-        # Handle batch media uploads
-        num_media = int(request.form.get('num_media', 0))
-        if num_media > 0:
-            for i in range(num_media):
-                media_type = request.form.get(f'media_type_{i}')
-                media_caption = request.form.get(f'media_caption_{i}', '')
-                
-                # Check if file was uploaded
-                file_key = f'media_file_{i}'
-                if file_key in request.files:
-                    file = request.files[file_key]
-                    if file and file.filename:
-                        filename = secure_filename(file.filename)
-                        unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{i}_{filename}"
-                        upload_folder = os.path.join('static', 'uploads', 'media')
-                        os.makedirs(upload_folder, exist_ok=True)
-                        file_path = os.path.join(upload_folder, unique_filename)
-                        file.save(file_path)
-                        
-                        # Create QuestionMedia record
-                        media = QuestionMedia(
-                            question_id=question.id,
-                            media_type=media_type,
-                            media_url=f"uploads/media/{unique_filename}",
-                            media_caption=media_caption,
-                            display_order=i
-                        )
-                        db.session.add(media)
-            
-            db.session.commit()
-        
-        log_game_action(
-            "QUESTION_ADDED",
-            details=f"Question {next_number} added to Level {level.level_number}."
-        )
-        
+
+        for i in range(num_media):
+            media_type = request.form.get(f'media_type_{i}')
+            media_caption = request.form.get(f'media_caption_{i}', '')
+            file_key = f'media_file_{i}'
+            if file_key in request.files:
+                file = request.files[file_key]
+                if file and file.filename:
+                    unique_filename = _unique_filename(file.filename)
+                    upload_folder = os.path.join('static', 'uploads', 'media')
+                    os.makedirs(upload_folder, exist_ok=True)
+                    file.save(os.path.join(upload_folder, unique_filename))
+                    db.session.add(QuestionMedia(
+                        question_id=question.id,
+                        media_type=media_type,
+                        media_url=f"uploads/media/{unique_filename}",
+                        media_caption=media_caption,
+                        display_order=i,
+                    ))
+        db.session.commit()
+
+        log_game_action('QUESTION_ADDED', details=f'Question {next_number} added to Level {level.level_number}.')
         flash(f'Question {next_number} added successfully!', 'success')
         return redirect(url_for('admin.manage_questions', level_id=level_id))
-    
-    # For GET request, calculate next number
-    max_question = Question.query.filter_by(level_id=level_id).order_by(Question.question_number.desc()).first()
-    next_question_number = (max_question.question_number + 1) if max_question else 1
-    
+
+    max_q = Question.query.filter_by(level_id=level_id).order_by(Question.question_number.desc()).first()
+    next_question_number = (max_q.question_number + 1) if max_q else 1
     return render_template('admin/add_edit_question.html', level=level, question=None, next_question_number=next_question_number)
 
 @admin_bp.route('/question/<int:question_id>/edit', methods=['GET', 'POST'])
@@ -406,78 +396,72 @@ def add_question(level_id):
 def edit_question(question_id):
     question = Question.query.get_or_404(question_id)
     level = question.level
-    
+
     if request.method == 'POST':
-        question.question_text = request.form.get('question_text')
-        question.answer = request.form.get('answer')
-        question.points = int(request.form.get('points', 10))
-        
-        # Handle image upload
-        if 'question_image' in request.files:
+        # L10 fix: validate required fields before writing
+        question_text = (request.form.get('question_text') or '').strip()
+        answer = (request.form.get('answer') or '').strip()
+        if not question_text or not answer:
+            flash('Question text and answer cannot be empty.', 'danger')
+            return redirect(url_for('admin.edit_question', question_id=question_id))
+
+        question.question_text = question_text
+        question.answer = answer
+        question.points = _safe_int(request.form.get('points'), default=10, minimum=0)
+        num_media = _safe_int(request.form.get('num_media'), default=0, minimum=0)
+
+        # L7 fix: process removal first, then new upload — mutually exclusive
+        if request.form.get('remove_image') == 'true':
+            if question.media_url:
+                disk_path = os.path.join('static', question.media_url)
+                if os.path.exists(disk_path):
+                    os.remove(disk_path)
+            question.media_url = None
+        elif 'question_image' in request.files:
+            # L8 fix: uuid filename
             file = request.files['question_image']
             if file and file.filename:
-                filename = secure_filename(file.filename)
-                unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+                unique_filename = _unique_filename(file.filename)
                 upload_folder = os.path.join('static', 'uploads')
                 os.makedirs(upload_folder, exist_ok=True)
-                file_path = os.path.join(upload_folder, unique_filename)
-                file.save(file_path)
+                file.save(os.path.join(upload_folder, unique_filename))
                 question.media_url = f"uploads/{unique_filename}"
-        
-        # Handle image removal
-        if request.form.get('remove_image') == 'true':
-            question.media_url = None
-        
-        # Handle batch media deletion
-        delete_media_ids = request.form.getlist('delete_media')
-        if delete_media_ids:
-            for media_id in delete_media_ids:
-                media = QuestionMedia.query.get(int(media_id))
-                if media and media.question_id == question.id:
-                    db.session.delete(media)
-        
-        # Handle new batch media uploads
-        num_media = int(request.form.get('num_media', 0))
-        if num_media > 0:
-            # Get current max display_order
-            max_order = db.session.query(db.func.max(QuestionMedia.display_order)).filter_by(question_id=question.id).scalar() or 0
-            
-            for i in range(num_media):
-                media_type = request.form.get(f'media_type_{i}')
-                media_caption = request.form.get(f'media_caption_{i}', '')
-                
-                # Check if file was uploaded
-                file_key = f'media_file_{i}'
-                if file_key in request.files:
-                    file = request.files[file_key]
-                    if file and file.filename:
-                        filename = secure_filename(file.filename)
-                        unique_filename = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{i}_{filename}"
-                        upload_folder = os.path.join('static', 'uploads', 'media')
-                        os.makedirs(upload_folder, exist_ok=True)
-                        file_path = os.path.join(upload_folder, unique_filename)
-                        file.save(file_path)
-                        
-                        # Create QuestionMedia record
-                        media = QuestionMedia(
-                            question_id=question.id,
-                            media_type=media_type,
-                            media_url=f"uploads/media/{unique_filename}",
-                            media_caption=media_caption,
-                            display_order=max_order + i + 1
-                        )
-                        db.session.add(media)
-        
+
+        # Delete selected existing media attachments
+        for media_id in request.form.getlist('delete_media'):
+            media = QuestionMedia.query.get(_safe_int(media_id))
+            if media and media.question_id == question.id:
+                disk_path = os.path.join('static', media.media_url)
+                if os.path.exists(disk_path):
+                    os.remove(disk_path)
+                db.session.delete(media)
+
+        # Add new media attachments
+        max_order = db.session.query(db.func.max(QuestionMedia.display_order)).filter_by(question_id=question.id).scalar() or 0
+        for i in range(num_media):
+            media_type = request.form.get(f'media_type_{i}')
+            media_caption = request.form.get(f'media_caption_{i}', '')
+            file_key = f'media_file_{i}'
+            if file_key in request.files:
+                file = request.files[file_key]
+                if file and file.filename:
+                    unique_filename = _unique_filename(file.filename)
+                    upload_folder = os.path.join('static', 'uploads', 'media')
+                    os.makedirs(upload_folder, exist_ok=True)
+                    file.save(os.path.join(upload_folder, unique_filename))
+                    db.session.add(QuestionMedia(
+                        question_id=question.id,
+                        media_type=media_type,
+                        media_url=f"uploads/media/{unique_filename}",
+                        media_caption=media_caption,
+                        display_order=max_order + i + 1,
+                    ))
+
         db.session.commit()
-        
-        log_game_action(
-            "QUESTION_UPDATED",
-            details=f"Question {question.question_number} in Level {level.level_number} updated."
-        )
-        
+        log_game_action('QUESTION_UPDATED', details=f'Question {question.question_number} in Level {level.level_number} updated.')
         flash(f'Question {question.question_number} updated successfully!', 'success')
         return redirect(url_for('admin.manage_questions', level_id=level.id))
-    
+
     return render_template('admin/add_edit_question.html', level=level, question=question)
 
 @admin_bp.route('/question/<int:question_id>/delete', methods=['POST'])
@@ -485,19 +469,45 @@ def edit_question(question_id):
 @admin_required
 def delete_question(question_id):
     question = Question.query.get_or_404(question_id)
+    level = question.level
     level_id = question.level_id
-    level_number = question.level.level_number
     question_number = question.question_number
-    
+    config = GameConfig.query.first()
+
+    # L2 fix: block deletion while game is live to prevent stranding active teams
+    if config and config.game_started:
+        flash(
+            f'Cannot delete questions while the game is running. Stop the game first.',
+            'danger',
+        )
+        return redirect(url_for('admin.manage_questions', level_id=level_id))
+
+    # L1 fix: delete uploaded files from disk
+    if question.media_url:
+        disk_path = os.path.join('static', question.media_url)
+        if os.path.exists(disk_path):
+            os.remove(disk_path)
+    for media in question.media_files:
+        disk_path = os.path.join('static', media.media_url)
+        if os.path.exists(disk_path):
+            os.remove(disk_path)
+
     db.session.delete(question)
-    db.session.commit()
-    
-    log_game_action(
-        "QUESTION_DELETED",
-        details=f"Question {question_number} deleted from Level {level_number}."
+    db.session.flush()  # remove the row before renumbering
+
+    # L3 fix: close the numbering gap so no team pointer lands on a missing question
+    subsequent = (
+        Question.query
+        .filter(Question.level_id == level_id, Question.question_number > question_number)
+        .order_by(Question.question_number)
+        .all()
     )
-    
-    flash(f'Question {question_number} deleted successfully!', 'success')
+    for q in subsequent:
+        q.question_number -= 1
+
+    db.session.commit()
+    log_game_action('QUESTION_DELETED', details=f'Question {question_number} deleted from Level {level.level_number}. Remaining questions renumbered.')
+    flash(f'Question {question_number} deleted and remaining questions renumbered.', 'success')
     return redirect(url_for('admin.manage_questions', level_id=level_id))
 
 @admin_bp.route('/question/<int:question_id>/clues', methods=['GET', 'POST'])
@@ -505,21 +515,24 @@ def delete_question(question_id):
 @admin_required
 def manage_clues(question_id):
     question = Question.query.get_or_404(question_id)
-    
+
     if request.method == 'POST':
-        clue_text = request.form.get('clue_text')
-        explanation = request.form.get('explanation')
-        
-        # Get the next clue order
+        # L9 fix: validate clue text is non-empty
+        clue_text = (request.form.get('clue_text') or '').strip()
+        if not clue_text:
+            flash('Clue text cannot be empty.', 'danger')
+            return redirect(url_for('admin.manage_clues', question_id=question_id))
+
+        explanation = (request.form.get('explanation') or '').strip() or None
         max_clue = Clue.query.filter_by(question_id=question_id).order_by(Clue.clue_order.desc()).first()
         next_order = (max_clue.clue_order + 1) if max_clue else 1
-        
+
         clue = Clue(question_id=question_id, clue_text=clue_text, explanation=explanation, clue_order=next_order)
         db.session.add(clue)
         db.session.commit()
         flash('Clue added successfully!', 'success')
         return redirect(url_for('admin.manage_clues', question_id=question_id))
-    
+
     clues = Clue.query.filter_by(question_id=question_id).order_by(Clue.clue_order).all()
     return render_template('admin/manage_clues.html', question=question, clues=clues)
 
@@ -529,17 +542,33 @@ def manage_clues(question_id):
 def edit_clue(clue_id):
     clue = Clue.query.get_or_404(clue_id)
     question = clue.question
-    
+
     if request.method == 'POST':
-        clue.clue_text = request.form.get('clue_text')
-        clue.explanation = request.form.get('explanation')
-        clue.clue_order = int(request.form.get('clue_order'))
-        
+        # L5 fix: validate text + safe int for order + duplicate order check
+        clue_text = (request.form.get('clue_text') or '').strip()
+        if not clue_text:
+            flash('Clue text cannot be empty.', 'danger')
+            return redirect(url_for('admin.edit_clue', clue_id=clue_id))
+
+        new_order = _safe_int(request.form.get('clue_order'), default=clue.clue_order, minimum=1)
+        duplicate = (
+            Clue.query
+            .filter(Clue.question_id == question.id, Clue.clue_order == new_order, Clue.id != clue.id)
+            .first()
+        )
+        if duplicate:
+            flash(f'Clue order {new_order} is already used by another clue. Choose a different order.', 'danger')
+            return redirect(url_for('admin.edit_clue', clue_id=clue_id))
+
+        clue.clue_text = clue_text
+        clue.explanation = (request.form.get('explanation') or '').strip() or None
+        clue.clue_order = new_order
         db.session.commit()
         flash('Clue updated successfully!', 'success')
         return redirect(url_for('admin.manage_clues', question_id=question.id))
-    
+
     return render_template('admin/edit_clue.html', clue=clue, question=question)
+
 
 @admin_bp.route('/clue/<int:clue_id>/delete', methods=['POST'])
 @login_required
@@ -547,9 +576,23 @@ def edit_clue(clue_id):
 def delete_clue(clue_id):
     clue = Clue.query.get_or_404(clue_id)
     question_id = clue.question_id
+    deleted_order = clue.clue_order
+
     db.session.delete(clue)
+    db.session.flush()
+
+    # L11 fix: resequence remaining clues to close the order gap
+    remaining = (
+        Clue.query
+        .filter(Clue.question_id == question_id, Clue.clue_order > deleted_order)
+        .order_by(Clue.clue_order)
+        .all()
+    )
+    for c in remaining:
+        c.clue_order -= 1
+
     db.session.commit()
-    flash('Clue deleted successfully!', 'success')
+    flash('Clue deleted and remaining clues reordered.', 'success')
     return redirect(url_for('admin.manage_clues', question_id=question_id))
 
 @admin_bp.route('/manage-teams')
