@@ -49,14 +49,13 @@ class Team(db.Model):
 
     @property
     def clues_remaining(self):
-        """Calculates clues remaining for the total game statically from config"""
-        from models import GameConfig, ClueUsage
+        """Calculates clues remaining for the total game from config."""
         config = GameConfig.query.first()
         if not config:
             return 0
-            
         total_used = ClueUsage.query.filter_by(team_id=self.id).count()
         return max(0, config.clues_per_team - total_used)
+
 
 class GameConfig(db.Model):
     __tablename__ = 'game_config'

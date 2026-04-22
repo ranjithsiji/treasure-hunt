@@ -217,17 +217,18 @@
                 method: 'GET',
                 success: function (response) {
                     if (response.success) {
-                        const clueHtml = `
-                        <div class="clue-box mb-3 p-3 border rounded shadow-sm bg-white border-warning">
-                            <h6 class="text-warning mb-2"><i class="bi bi-lightbulb-fill"></i> New Clue Revealed</h6>
-                            <p class="mb-0 lead">${response.clue}</p>
-                            ${response.explanation ? `
-                            <div class="mt-2 pt-2 border-top small text-muted">
-                                <i class="bi bi-info-circle"></i> <strong>Note:</strong> ${response.explanation}
-                            </div>` : ''}
-                        </div>
-                    `;
-                        $('#clues-container').append(clueHtml);
+                        const clueText = $('<p>').addClass('mb-0 lead').text(response.clue);
+                        const clueBox = $('<div>').addClass('clue-box mb-3 p-3 border rounded shadow-sm bg-white border-warning');
+                        const clueHeader = $('<h6>').addClass('text-warning mb-2').html('<i class="bi bi-lightbulb-fill"></i> New Clue Revealed');
+                        clueBox.append(clueHeader, clueText);
+
+                        if (response.explanation) {
+                            const note = $('<div>').addClass('mt-2 pt-2 border-top small text-muted');
+                            note.html('<i class="bi bi-info-circle"></i> <strong>Note:</strong> ').append($('<span>').text(response.explanation));
+                            clueBox.append(note);
+                        }
+
+                        $('#clues-container').append(clueBox);
                         $('#clues-remaining').text(response.clues_remaining);
 
                         if (response.clues_remaining <= 0) {
@@ -264,34 +265,25 @@
                         // Check if there's an explanation
                         if (response.has_explanation && response.explanation) {
                             // Show explanation modal
-                            $('#explanationContent').html(`
-                                <div class="explanation-box">
-                                    <h6 class="mb-3"><i class="bi bi-book"></i> Explanation:</h6>
-                                    <div class="explanation-text">
-                                        ${response.explanation}
-                                    </div>
-                                </div>
-                            `);
+                            const expBox = $('<div>').addClass('explanation-box');
+                            const expTitle = $('<h6>').addClass('mb-3').html('<i class="bi bi-book"></i> Explanation:');
+                            const expText = $('<div>').addClass('explanation-text').html(response.explanation);
+                            expBox.append(expTitle, expText);
+                            $('#explanationContent').empty().append(expBox);
 
                             const modal = new bootstrap.Modal(document.getElementById('explanationModal'));
                             modal.show();
                         } else {
-                            // No explanation, show success message and redirect
-                            $('#message-container').html(`
-                                <div class="alert alert-success">
-                                    <i class="bi bi-check-circle-fill"></i> ${response.message}
-                                </div>
-                            `);
-                            setTimeout(function () {
-                                window.location.href = redirectUrl;
-                            }, 1500);
+                            // No explanation — show success message and redirect
+                            const msg = $('<div>').addClass('alert alert-success');
+                            msg.html('<i class="bi bi-check-circle-fill"></i> ').append($('<span>').text(response.message));
+                            $('#message-container').empty().append(msg);
+                            setTimeout(function () { window.location.href = redirectUrl; }, 1500);
                         }
                     } else {
-                        $('#message-container').html(`
-                            <div class="alert alert-danger">
-                                <i class="bi bi-x-circle-fill"></i> ${response.message}
-                            </div>
-                        `);
+                        const errMsg = $('<div>').addClass('alert alert-danger');
+                        errMsg.html('<i class="bi bi-x-circle-fill"></i> ').append($('<span>').text(response.message));
+                        $('#message-container').empty().append(errMsg);
                         $('#answer').val('').focus();
 
                         // Start 10 second cooldown
@@ -308,11 +300,9 @@
                     }
                 },
                 error: function () {
-                    $('#message-container').html(`
-                        <div class="alert alert-danger">
-                            <i class="bi bi-x-circle-fill"></i> Error submitting answer. Please try again.
-                        </div>
-                    `);
+                    const netErr = $('<div>').addClass('alert alert-danger')
+                        .html('<i class="bi bi-x-circle-fill"></i> Error submitting answer. Please try again.');
+                    $('#message-container').empty().append(netErr);
 
                     // Start 10 second cooldown even on error
                     let countdown = 10;
