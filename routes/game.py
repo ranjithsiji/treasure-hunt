@@ -47,16 +47,25 @@ def dashboard():
         flash('Your assigned level no longer exists. Please contact admin.', 'danger')
         return render_template('game/waiting.html')
 
+    # Fix #2: check is_active FIRST.
+    # A team on a locked level should always see the locked screen,
+    # regardless of how far through the questions they are.
+    if not current_level.is_active:
+        return render_template('game/level_locked.html', team=team, current_level=team.current_level)
+
     # Get total questions in this level (single query, reused below)
     total_questions = Question.query.filter_by(level_id=current_level.id).count()
 
     # Check if team has completed all questions in this level
     if team.current_question > total_questions:
-        return render_template('game/level_complete.html', team=team, level=current_level)
-
-    # Only check is_active if they are still playing the level
-    if not current_level.is_active:
-        return render_template('game/level_locked.html', team=team, current_level=team.current_level)
+        # Fix #7: compute qualified explicitly here — don't leave it to template inference
+        qualified = team.current_level > current_level.level_number
+        return render_template(
+            'game/level_complete.html',
+            team=team,
+            level=current_level,
+            qualified=qualified,
+        )
 
     # Get current question
     current_question = Question.query.filter_by(

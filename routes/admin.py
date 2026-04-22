@@ -40,12 +40,28 @@ def generate_team_code():
 def dashboard():
     config = GameConfig.query.first()
     levels = Level.query.order_by(Level.level_number).all()
-    teams = Team.query.all()
-    
-    return render_template('admin/dashboard.html', 
-                         config=config, 
-                         levels=levels,
-                         teams=teams)
+    teams  = Team.query.all()
+
+    # Fix #6: pre-aggregate clue usage in one bulk query so the template
+    # never calls team.clues_remaining (2 queries × N teams) in a loop.
+    clues_used_map = dict(
+        db.session.query(ClueUsage.team_id, db.func.count(ClueUsage.id))
+        .group_by(ClueUsage.team_id)
+        .all()
+    )
+    clues_per_team = config.clues_per_team if config else 0
+    team_clues = {
+        team.id: max(0, clues_per_team - clues_used_map.get(team.id, 0))
+        for team in teams
+    }
+
+    return render_template(
+        'admin/dashboard.html',
+        config=config,
+        levels=levels,
+        teams=teams,
+        team_clues=team_clues,
+    )
 
 def _safe_int(value, default: int = 0, minimum: int = 0) -> int:
     """Parse an integer from a form value safely, clamped to a minimum."""
@@ -98,19 +114,21 @@ def initialize_game():
 
         # Add any new levels that are missing
         for i in range(existing_count + 1, num_levels + 1):
-            # Issue #10 — read per-level override from the dynamic form fields
+            is_final_level = (i == num_levels)
+            # Fix #3: non-final levels must have teams_passing >= 1
             per_level_passing = _safe_int(
                 request.form.get(f'teams_passing_level_{i}'),
                 default=teams_passing_default,
-                minimum=0,
+                minimum=0 if is_final_level else 1,
             )
             level = Level(
                 level_number=i,
                 name=f"Level {i}",
                 teams_passing=per_level_passing,
-                is_final=(i == num_levels),
+                is_final=is_final_level,
             )
             db.session.add(level)
+
 
         # Refresh is_final flag on all retained levels (Issue #8)
         for level in Level.query.filter(Level.level_number <= num_levels).all():
@@ -151,30 +169,39 @@ def start_game():
     if not config:
         flash('Please initialize the game first.', 'warning')
         return redirect(url_for('admin.initialize_game'))
-    
-    # Check if there are enough teams
+
+    # Fix #5: num_teams is a capacity cap, not a hard minimum.
+    # Only block if there are literally no teams at all.
     teams_count = Team.query.count()
-    if teams_count < config.num_teams:
-        flash(f'Not enough teams. Need {config.num_teams}, have {teams_count}.', 'warning')
+    if teams_count == 0:
+        flash('No teams exist yet. Please create at least one team before starting.', 'warning')
         return redirect(url_for('admin.manage_teams'))
-    
-    # Check if levels have questions
-    levels = Level.query.all()
-    for level in levels:
-        if len(level.questions) == 0:
-            flash(f'Level {level.level_number} has no questions. Please add questions to all levels first.', 'warning')
-            return redirect(url_for('admin.manage_levels'))
-    
+
+    # Fix #10: use COUNT per level (single query each) instead of loading
+    # all questions via the relationship (N+1). Also only block on Level 1
+    # being empty — future levels can still be filled before teams reach them.
+    levels = Level.query.order_by(Level.level_number).all()
+    first_level = levels[0] if levels else None
+    if not first_level:
+        flash('No levels configured. Please initialize the game first.', 'warning')
+        return redirect(url_for('admin.initialize_game'))
+
+    first_level_q_count = Question.query.filter_by(level_id=first_level.id).count()
+    if first_level_q_count == 0:
+        flash(f'Level 1 has no questions. Add questions to Level 1 before starting.', 'warning')
+        return redirect(url_for('admin.manage_levels'))
+
     config.game_started = True
+    config.current_level = 1
     for level in levels:
         level.is_active = True
-        
-    config.current_level = 1
     db.session.commit()
-    
-    log_game_action("GAME_STARTED", details="Game officially started. All levels activated simultaneously.")
-    
-    flash('Game has been started! All levels are now active and will auto-close when slots are full.', 'success')
+
+    log_game_action(
+        'GAME_STARTED',
+        details=f'Game started with {teams_count} team(s). All levels activated simultaneously.',
+    )
+    flash('Game has been started! All levels are now active.', 'success')
     return redirect(url_for('admin.dashboard'))
 
 @admin_bp.route('/stop-game')
@@ -183,23 +210,37 @@ def start_game():
 def stop_game():
     config = GameConfig.query.first()
     if config:
-        config.game_started = False
-        # Deactivate all levels
-        levels = Level.query.all()
-        for level in levels:
-            level.is_active = False
-        db.session.commit()
-        
-        log_game_action("GAME_STOPPED", details="Game stopped by admin.")
-        flash('Game has been stopped.', 'info')
-    
+        # Fix #8: wrap in try/except so a partial DB failure gets rolled back cleanly
+        try:
+            config.game_started = False
+            Level.query.update({'is_active': False})
+            db.session.commit()
+            log_game_action('GAME_STOPPED', details='Game stopped by admin.')
+            flash('Game has been stopped.', 'info')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error stopping game: {e}', 'danger')
     return redirect(url_for('admin.dashboard'))
+
 
 @admin_bp.route('/start-level/<int:level_number>')
 @login_required
 @admin_required
 def start_level(level_number):
-    flash('Manual level activation is disabled. All levels start simultaneously when the game starts.', 'info')
+    # Fix #1: actually re-open the level instead of showing a stub message.
+    config = GameConfig.query.first()
+    if not config or not config.game_started:
+        flash('Cannot activate a level while the game is not running.', 'warning')
+        return redirect(url_for('admin.dashboard'))
+
+    level = Level.query.filter_by(level_number=level_number).first_or_404()
+    level.is_active = True
+    db.session.commit()
+    log_game_action(
+        'LEVEL_REOPENED',
+        details=f'Level {level_number} manually re-opened by admin.',
+    )
+    flash(f'Level {level_number} has been re-opened.', 'success')
     return redirect(url_for('admin.dashboard'))
 
 @admin_bp.route('/stop-level/<int:level_number>')
@@ -227,17 +268,36 @@ def manage_levels():
 @admin_required
 def update_level_config(level_id):
     level = Level.query.get_or_404(level_id)
-    
-    level.name = request.form.get('level_name')
-    level.teams_passing = int(request.form.get('teams_passing'))
-    
+    config = GameConfig.query.first()
+
+    # Fix #4: warn if the game is already live — changes are still allowed but
+    # the admin must consciously proceed (we log it prominently).
+    if config and config.game_started:
+        flash(
+            f'⚠️ Warning: Game is live. Changes to Level {level.level_number} take effect immediately.',
+            'warning',
+        )
+
+    level_name = request.form.get('level_name', '').strip() or level.name
+
+    # Fix #3 & #12: safe int + validate teams_passing ≥ 1 on non-final levels
+    new_passing = _safe_int(request.form.get('teams_passing'), default=level.teams_passing, minimum=0)
+    if not level.is_final and new_passing < 1:
+        flash('Non-final levels must allow at least 1 team to pass. Value unchanged.', 'danger')
+        return redirect(url_for('admin.manage_levels'))
+
+    level.name = level_name
+    level.teams_passing = new_passing
     db.session.commit()
-    
+
     log_game_action(
-        "LEVEL_CONFIG_UPDATED",
-        details=f"Level {level.level_number} config updated: {level.teams_passing} teams passing."
+        'LEVEL_CONFIG_UPDATED',
+        details=(
+            f'Level {level.level_number} updated: name="{level.name}", '
+            f'teams_passing={level.teams_passing}'
+            + (' [LIVE GAME]' if config and config.game_started else '')
+        ),
     )
-    
     flash(f'Level {level.level_number} configuration updated successfully!', 'success')
     return redirect(url_for('admin.manage_levels'))
 

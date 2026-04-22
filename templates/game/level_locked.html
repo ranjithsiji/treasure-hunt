@@ -16,16 +16,23 @@
                     <div class="mt-4">
                         <p><strong>Your Team:</strong> {{ team.name }}</p>
                         <p><strong>Current Level:</strong> {{ team.current_level }}</p>
-                        <p><strong>Clues Remaining:</strong> <span class="badge bg-warning">{{ team.clues_remaining
-                                }}</span></p>
+                        <p><strong>Clues Remaining:</strong> <span class="badge bg-warning">{{ team.clues_remaining }}</span></p>
                     </div>
 
                     <div class="mt-4">
+                        {# Fix #9: auto-refresh so teams don't have to manually poll #}
+                        <div class="alert alert-info d-inline-block px-4">
+                            <i class="bi bi-arrow-clockwise"></i>
+                            Page refreshes automatically in <strong id="countdown">30</strong>s
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
                         <a href="{{ url_for('game.scoreboard') }}" class="btn btn-info">
                             <i class="bi bi-bar-chart-fill"></i> View Scoreboard
                         </a>
                         <button onclick="location.reload()" class="btn btn-secondary">
-                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                            <i class="bi bi-arrow-clockwise"></i> Refresh Now
                         </button>
                     </div>
                 </div>
@@ -33,4 +40,20 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Fix #9: auto-refresh countdown
+    let secs = 30;
+    const el = document.getElementById('countdown');
+    const timer = setInterval(function () {
+        secs--;
+        el.textContent = secs;
+        if (secs <= 0) {
+            clearInterval(timer);
+            location.reload();
+        }
+    }, 1000);
+</script>
 {% endblock %}

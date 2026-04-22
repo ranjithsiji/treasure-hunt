@@ -244,12 +244,21 @@
                                     class="btn btn-sm btn-info action-btn">
                                     <i class="bi bi-question-circle"></i> Manage
                                 </a>
-                                {% if level.is_active %}
-                                <a href="{{ url_for('admin.stop_level', level_number=level.level_number) }}"
-                                    class="btn btn-sm btn-danger action-btn"
-                                    onclick="return confirm('Emergency Lock: Are you sure you want to manually CLOSE this level?')">
-                                    <i class="bi bi-lock-fill"></i> Lock
-                                </a>
+                                {% if game_config and game_config.game_started %}
+                                    {% if level.is_active %}
+                                    <a href="{{ url_for('admin.stop_level', level_number=level.level_number) }}"
+                                        class="btn btn-sm btn-danger action-btn"
+                                        onclick="return confirm('Emergency Lock: Are you sure you want to manually CLOSE this level?')">
+                                        <i class="bi bi-lock-fill"></i> Lock
+                                    </a>
+                                    {% else %}
+                                    {# Fix #9 — re-open button so teams are never permanently stranded #}
+                                    <a href="{{ url_for('admin.start_level', level_number=level.level_number) }}"
+                                        class="btn btn-sm btn-success action-btn"
+                                        onclick="return confirm('Re-open Level {{ level.level_number }}? Teams waiting on this level will be able to continue.')">
+                                        <i class="bi bi-unlock-fill"></i> Open
+                                    </a>
+                                    {% endif %}
                                 {% endif %}
                             </div>
                         </td>
@@ -287,12 +296,16 @@
                         <td><span class="badge bg-info badge-custom">{{ team.members|length }} Members</span></td>
                         <td>
                             <span class="badge bg-primary badge-custom">Level {{ team.current_level }}</span>
-                            {% set current_lvl_obj = levels|selectattr('level_number', 'equalto',
-                            team.current_level)|first %}
+                            {% set current_lvl_obj = levels|selectattr('level_number', 'equalto', team.current_level)|first %}
                             {% if current_lvl_obj %}
                             {% set q_count = current_lvl_obj.questions|length %}
+                            {# Fix #11: only show Eliminated when team truly didn't advance
+                               (current_level unchanged AND question pointer past end) #}
                             {% if team.current_question > q_count %}
-                            <span class="badge bg-danger badge-custom d-block mt-1">Eliminated</span>
+                                {% set prev_lvl = levels|selectattr('level_number', 'equalto', team.current_level - 1)|first %}
+                                {% if not prev_lvl or team.current_level == 1 %}
+                                <span class="badge bg-danger badge-custom d-block mt-1">Eliminated</span>
+                                {% endif %}
                             {% endif %}
                             {% endif %}
                         </td>
@@ -305,8 +318,9 @@
                             <span class="badge bg-secondary badge-custom">Q{{ team.current_question }}</span>
                             {% endif %}
                         </td>
-                        <td><span class="badge bg-warning badge-custom"><i class="bi bi-lightbulb-fill"></i> {{
-                                team.clues_remaining }}</span></td>
+                        <td><span class="badge bg-warning badge-custom"><i class="bi bi-lightbulb-fill"></i>
+                            {# Fix #6: use pre-aggregated dict — no property query per team #}
+                            {{ team_clues.get(team.id, 0) }}</span></td>
                         <td>
                             {% if team.is_active %}
                             <span class="badge bg-success badge-custom"><i class="bi bi-check-circle"></i> Active</span>

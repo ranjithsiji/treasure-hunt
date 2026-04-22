@@ -17,20 +17,24 @@
                     <p class="lead text-success"><strong>You've completed the treasure hunt!</strong></p>
                     <p class="text-muted">Your team has successfully conquered all levels. Well done!</p>
                     {% else %}
-                    {% if team.current_level > level.level_number %}
+                    {# Fix #7: use explicit `qualified` flag passed from the route #}
+                    {% if qualified %}
                     <i class="bi bi-star-fill text-warning" style="font-size: 5rem;"></i>
                     <div class="mt-4">
                         <span class="badge bg-success mb-2">QUALIFIED</span>
                         <h2>Level {{ level.level_number }} Complete!</h2>
                     </div>
-                    <p class="lead text-success"><strong>Great job! You've qualified for Level {{ team.current_level
-                            }}!</strong></p>
-                    <p class="text-muted">Please wait for the administrator to activate the next level for your team.
-                    </p>
+                    <p class="lead text-success"><strong>Great job! You've qualified for Level {{ team.current_level }}!</strong></p>
+                    <p class="text-muted">The next level is active — head back to continue playing.</p>
+                    <div class="mt-3">
+                        <a href="{{ url_for('game.dashboard') }}" class="btn btn-success btn-lg">
+                            <i class="bi bi-play-fill"></i> Continue to Level {{ team.current_level }}
+                        </a>
+                    </div>
                     {% else %}
                     <i class="bi bi-check-circle-fill text-info" style="font-size: 5rem;"></i>
                     <div class="mt-4">
-                        <span class="badge bg-danger mb-2">DID NOT QUALify</span>
+                        <span class="badge bg-danger mb-2">DID NOT QUALIFY</span>
                         <h2>Level {{ level.level_number }} Finished</h2>
                     </div>
                     <p class="lead text-danger"><strong>You finished Level {{ level.level_number }}, but did not qualify
@@ -38,6 +42,7 @@
                     <p class="text-muted">Only the first few teams to finish can advance. Better luck next time!</p>
                     {% endif %}
                     {% endif %}
+
 
                     <div class="mt-4">
                         <p><strong>Your Team:</strong> {{ team.name }}</p>
