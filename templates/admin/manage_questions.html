@@ -23,8 +23,20 @@
             <div>
                 <i class="bi bi-list-task"></i> Questions List
             </div>
-            <div>
+            <div class="d-flex align-items-center gap-2">
+                <span id="reorderStatus" class="badge bg-secondary badge-custom d-none">
+                    <i class="bi bi-arrow-clockwise"></i> Saving…
+                </span>
+                <span id="reorderOk" class="badge bg-success badge-custom d-none">
+                    <i class="bi bi-check-lg"></i> Order saved
+                </span>
+                <span id="reorderErr" class="badge bg-danger badge-custom d-none">
+                    <i class="bi bi-x-lg"></i> Save failed
+                </span>
                 <span class="badge bg-primary badge-custom">{{ questions|length }} Questions</span>
+                <span class="badge bg-secondary badge-custom small">
+                    <i class="bi bi-grip-vertical"></i> Drag rows to reorder
+                </span>
             </div>
         </div>
     </div>
@@ -34,6 +46,7 @@
             <table class="admin-table table">
                 <thead>
                     <tr>
+                        <th style="width: 40px;"></th>
                         <th style="width: 80px;">Q#</th>
                         <th style="width: 120px;">Type</th>
                         <th>Question Text</th>
@@ -44,11 +57,14 @@
                         <th style="width: 200px;">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="questionTableBody">
                     {% for question in questions %}
-                    <tr>
+                    <tr data-id="{{ question.id }}">
+                        <td class="drag-handle" title="Drag to reorder">
+                            <i class="bi bi-grip-vertical text-muted"></i>
+                        </td>
                         <td>
-                            <span class="badge bg-primary badge-custom fs-6">{{ question.question_number }}</span>
+                            <span class="badge bg-primary badge-custom fs-6 question-number-badge">{{ question.question_number }}</span>
                         </td>
                         <td>
                             {% if question.question_type == 'text' %}
@@ -197,6 +213,60 @@
 </div>
 {% endblock %}
 
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+(function () {
+    const tbody = document.getElementById('questionTableBody');
+    if (!tbody) return;
+
+    const reorderUrl = "{{ url_for('admin.reorder_questions', level_id=level.id) }}";
+    const statusEl  = document.getElementById('reorderStatus');
+    const okEl      = document.getElementById('reorderOk');
+    const errEl     = document.getElementById('reorderErr');
+    let hideTimer   = null;
+
+    function showStatus(el, ms) {
+        [statusEl, okEl, errEl].forEach(e => e.classList.add('d-none'));
+        el.classList.remove('d-none');
+        clearTimeout(hideTimer);
+        if (ms) hideTimer = setTimeout(() => el.classList.add('d-none'), ms);
+    }
+
+    // Renumber the visible Q# badges to reflect the current DOM order.
+    function renumberBadges() {
+        tbody.querySelectorAll('tr').forEach((row, i) => {
+            const badge = row.querySelector('.question-number-badge');
+            if (badge) badge.textContent = i + 1;
+        });
+    }
+
+    Sortable.create(tbody, {
+        handle: '.drag-handle',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: function () {
+            renumberBadges();
+            const ids = Array.from(tbody.querySelectorAll('tr[data-id]'))
+                             .map(r => r.dataset.id);
+            showStatus(statusEl);
+            fetch(reorderUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(ids),
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) showStatus(okEl, 2500);
+                else showStatus(errEl, 3000);
+            })
+            .catch(() => showStatus(errEl, 3000));
+        },
+    });
+})();
+</script>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .question-preview {
@@ -244,6 +314,21 @@
         margin: 0;
         color: #7f8c8d;
         font-size: 0.9rem;
+    }
+
+    .drag-handle {
+        cursor: grab;
+        text-align: center;
+        color: #adb5bd;
+        font-size: 1.1rem;
+        user-select: none;
+    }
+    .drag-handle:active { cursor: grabbing; }
+    .drag-handle:hover i { color: #495057; }
+
+    .sortable-ghost {
+        opacity: 0.4;
+        background: #e9f3ff;
     }
 </style>
 {% endblock %}

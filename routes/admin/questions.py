@@ -14,6 +14,20 @@ from routes.admin._helpers import (
 )
 
 
+@admin_bp.route('/level/<int:level_id>/questions/reorder', methods=['POST'])
+@login_required
+@admin_required
+def reorder_questions(level_id):
+    """Accept a JSON list of question IDs in the desired order and renumber them."""
+    ids = request.get_json()
+    if not isinstance(ids, list):
+        return {'ok': False, 'error': 'Invalid payload'}, 400
+    for index, qid in enumerate(ids, start=1):
+        Question.query.filter_by(id=int(qid), level_id=level_id).update({'question_number': index})
+    db.session.commit()
+    return {'ok': True}
+
+
 @admin_bp.route('/level/<int:level_id>/questions')
 @login_required
 @admin_required
