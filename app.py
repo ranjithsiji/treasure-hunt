@@ -62,6 +62,10 @@ def create_app():
         except Exception:
             db.session.rollback()
 
+    # Register CLI commands
+    from commands import user_cli
+    app.register_blueprint(user_cli)
+
     # Register blueprints
     from routes.auth import auth_bp
     from routes.admin import admin_bp
