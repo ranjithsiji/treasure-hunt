@@ -14,6 +14,64 @@ from routes.admin._helpers import (
 )
 
 
+@admin_bp.route('/questions/pool')
+@login_required
+@admin_required
+def assign_questions():
+    """Show unassigned questions and allow moving them to a level."""
+    from models import Level
+    unassigned = Question.query.filter_by(level_id=None).order_by(Question.id).all()
+    levels = Level.query.order_by(Level.level_number).all()
+    level_questions = {
+        lvl.id: Question.query.filter_by(level_id=lvl.id).order_by(Question.question_number).all()
+        for lvl in levels
+    }
+    return render_template(
+        'admin/assign_questions.html',
+        unassigned=unassigned,
+        levels=levels,
+        level_questions=level_questions,
+    )
+
+
+@admin_bp.route('/questions/move', methods=['POST'])
+@login_required
+@admin_required
+def move_question():
+    """Move a question to a level or back to the pool."""
+    from models import Level
+    question_id = int(request.form.get('question_id'))
+    target = request.form.get('target_level_id')  # '' means pool
+
+    question = Question.query.get_or_404(question_id)
+    old_level_id = question.level_id
+
+    if target:
+        target_level_id = int(target)
+        Level.query.get_or_404(target_level_id)
+        # Append at the end of the target level
+        max_q = Question.query.filter_by(level_id=target_level_id).order_by(
+            Question.question_number.desc()
+        ).first()
+        question.question_number = (max_q.question_number + 1) if max_q else 1
+        question.level_id = target_level_id
+    else:
+        question.level_id = None
+        question.question_number = None
+
+    # Renumber remaining questions in the source level to close the gap
+    if old_level_id:
+        remaining = Question.query.filter_by(level_id=old_level_id).order_by(
+            Question.question_number
+        ).all()
+        for i, q in enumerate(remaining, start=1):
+            q.question_number = i
+
+    db.session.commit()
+    flash('Question moved successfully.', 'success')
+    return redirect(url_for('admin.assign_questions'))
+
+
 @admin_bp.route('/level/<int:level_id>/questions/reorder', methods=['POST'])
 @login_required
 @admin_required

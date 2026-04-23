@@ -86,14 +86,14 @@ class Level(db.Model):
     is_active = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    questions = db.relationship('Question', back_populates='level', cascade='all, delete-orphan')
+    questions = db.relationship('Question', back_populates='level', cascade='all')
 
 
 class Question(db.Model):
     __tablename__ = 'questions'
     
     id = db.Column(db.Integer, primary_key=True)
-    level_id = db.Column(db.Integer, db.ForeignKey('levels.id'), nullable=False)
+    level_id = db.Column(db.Integer, db.ForeignKey('levels.id', ondelete='SET NULL'), nullable=True)
     question_number = db.Column(db.Integer, nullable=False)
     question_type = db.Column(db.String(20), nullable=False)  # text, image, video, mixed
     question_text = db.Column(db.Text, nullable=False)  # Now supports HTML content

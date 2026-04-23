@@ -1,0 +1,156 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Question Pool — Assign Questions{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center">
+    <div>
+        <h1><i class="bi bi-boxes"></i> Question Pool</h1>
+        <p class="text-muted">Assign unassigned questions to levels or move questions between levels.</p>
+    </div>
+    <a href="{{ url_for('admin.manage_levels') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Levels
+    </a>
+</div>
+
+{% macro move_form(question, exclude_level_id=None) %}
+<form method="POST" action="{{ url_for('admin.move_question') }}" class="d-flex gap-2 align-items-center flex-wrap">
+    <input type="hidden" name="question_id" value="{{ question.id }}">
+    <select name="target_level_id" class="form-select form-select-sm" style="width:auto; min-width:130px;">
+        <option value="">— Pool (unassign) —</option>
+        {% for lvl in levels %}
+        {% if lvl.id != exclude_level_id %}
+        <option value="{{ lvl.id }}">Level {{ lvl.level_number }} — {{ lvl.name }}</option>
+        {% endif %}
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-primary">
+        <i class="bi bi-arrow-right-circle"></i> Move
+    </button>
+</form>
+{% endmacro %}
+
+<!-- ── Unassigned Pool ──────────────────────────────────── -->
+<div class="admin-card mb-4">
+    <div class="admin-card-header d-flex justify-content-between align-items-center
+                {% if unassigned %}bg-warning text-dark{% endif %}">
+        <span>
+            <i class="bi bi-inbox-fill"></i> Unassigned Question Pool
+        </span>
+        <span class="badge {% if unassigned %}bg-dark{% else %}bg-secondary{% endif %} badge-custom">
+            {{ unassigned|length }} question(s)
+        </span>
+    </div>
+    <div class="admin-card-body p-0">
+        {% if unassigned %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:50px;">#</th>
+                        <th>Question</th>
+                        <th style="width:180px;">Answer</th>
+                        <th style="width:80px;">Clues</th>
+                        <th style="width:280px;">Assign to Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for q in unassigned %}
+                    <tr>
+                        <td><span class="badge bg-secondary">{{ loop.index }}</span></td>
+                        <td>
+                            <div style="max-width:380px; font-size:.9rem;">
+                                {{ q.question_text|striptags|truncate(120) }}
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-tag"></i> {{ q.question_type }}
+                                {% if q.media_url %}<i class="bi bi-image ms-2"></i>{% endif %}
+                                {% if q.media_files %}<i class="bi bi-paperclip ms-1"></i> {{ q.media_files|length }}{% endif %}
+                            </small>
+                        </td>
+                        <td><code class="small">{{ q.answer }}</code></td>
+                        <td>
+                            <span class="badge bg-info">{{ q.clues|length }}</span>
+                        </td>
+                        <td>{{ move_form(q) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-check-circle-fill text-success" style="font-size:2rem;"></i>
+            <p class="mt-2 mb-0">All questions are assigned to a level.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ── Per-Level Sections ───────────────────────────────── -->
+{% for lvl in levels %}
+{% set qs = level_questions[lvl.id] %}
+<div class="admin-card mb-4">
+    <div class="admin-card-header d-flex justify-content-between align-items-center">
+        <span>
+            <i class="bi bi-layers-fill"></i>
+            Level {{ lvl.level_number }} — {{ lvl.name }}
+            {% if lvl.is_final %}<span class="badge bg-warning ms-2">Final</span>{% endif %}
+        </span>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-primary badge-custom">{{ qs|length }} question(s)</span>
+            <a href="{{ url_for('admin.manage_questions', level_id=lvl.id) }}"
+               class="btn btn-sm btn-outline-light">
+                <i class="bi bi-pencil-square"></i> Edit
+            </a>
+        </div>
+    </div>
+    <div class="admin-card-body p-0">
+        {% if qs %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:50px;">Q#</th>
+                        <th>Question</th>
+                        <th style="width:180px;">Answer</th>
+                        <th style="width:80px;">Clues</th>
+                        <th style="width:280px;">Move to</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for q in qs %}
+                    <tr>
+                        <td><span class="badge bg-primary">{{ q.question_number }}</span></td>
+                        <td>
+                            <div style="max-width:380px; font-size:.9rem;">
+                                {{ q.question_text|striptags|truncate(120) }}
+                            </div>
+                            <small class="text-muted">
+                                <i class="bi bi-tag"></i> {{ q.question_type }}
+                                {% if q.media_url %}<i class="bi bi-image ms-2"></i>{% endif %}
+                            </small>
+                        </td>
+                        <td><code class="small">{{ q.answer }}</code></td>
+                        <td><span class="badge bg-info">{{ q.clues|length }}</span></td>
+                        <td>{{ move_form(q, exclude_level_id=lvl.id) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-3 text-muted small">
+            <i class="bi bi-inbox"></i> No questions assigned yet.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+
+{% if not levels %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    No levels configured yet. <a href="{{ url_for('admin.initialize_game') }}">Initialize the game</a> first.
+</div>
+{% endif %}
+{% endblock %}

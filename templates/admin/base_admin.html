@@ -142,9 +142,17 @@
                     <span>Questions & Clues</span>
                     <i class="bi bi-chevron-down ms-auto"></i>
                 </a>
-                <div class="collapse sidebar-submenu" id="questionSubmenu">
+                <div class="collapse sidebar-submenu {% if request.endpoint in ['admin.assign_questions'] %}show{% endif %}" id="questionSubmenu">
                     <a href="{{ url_for('admin.manage_levels') }}" class="sidebar-subitem">
                         <i class="bi bi-card-list"></i> Manage Questions
+                    </a>
+                    <a href="{{ url_for('admin.assign_questions') }}"
+                       class="sidebar-subitem {% if request.endpoint == 'admin.assign_questions' %}active{% endif %}">
+                        <i class="bi bi-boxes"></i> Question Pool
+                        {% set pool_count = unassigned_pool_count | default(0) %}
+                        {% if pool_count > 0 %}
+                        <span class="badge bg-warning ms-1">{{ pool_count }}</span>
+                        {% endif %}
                     </a>
                     <div class="sidebar-subitem sidebar-item-disabled">
                         <i class="bi bi-lightbulb"></i> Manage Clues

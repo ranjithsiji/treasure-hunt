@@ -39,10 +39,44 @@ def initialize_game():
             )
             db.session.add(config)
 
+        retain_questions = request.form.get('retain_questions') == 'on'
         existing_count = Level.query.count()
 
         if existing_count > num_levels:
-            Level.query.filter(Level.level_number > num_levels).delete()
+            levels_to_remove = Level.query.filter(Level.level_number > num_levels).all()
+
+            for lvl in levels_to_remove:
+                if retain_questions:
+                    # Move questions to the unassigned pool instead of deleting them
+                    Question.query.filter_by(level_id=lvl.id).update(
+                        {'level_id': None, 'question_number': None},
+                        synchronize_session='fetch',
+                    )
+                else:
+                    # Delete questions (and their files) permanently
+                    import os
+                    for q in Question.query.filter_by(level_id=lvl.id).all():
+                        if q.media_url:
+                            disk_path = os.path.join('static', q.media_url)
+                            if os.path.exists(disk_path):
+                                os.remove(disk_path)
+                        for media in q.media_files:
+                            disk_path = os.path.join('static', media.media_url)
+                            if os.path.exists(disk_path):
+                                os.remove(disk_path)
+                    Question.query.filter_by(level_id=lvl.id).delete(synchronize_session='fetch')
+                db.session.delete(lvl)
+
+            moved = sum(
+                Question.query.filter_by(level_id=None).count() for _ in [1]
+            ) if retain_questions else 0
+
+            if retain_questions and moved:
+                flash(
+                    f'{moved} question(s) moved to the Question Pool — assign them via '
+                    '<a href="' + url_for('admin.assign_questions') + '">Question Pool</a>.',
+                    'info',
+                )
 
         for i in range(existing_count + 1, num_levels + 1):
             is_final_level = (i == num_levels)

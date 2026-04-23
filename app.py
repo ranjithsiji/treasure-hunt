@@ -24,15 +24,22 @@ def create_app():
     # Context processor — cached in Flask's g so DB is hit at most once per request
     @app.context_processor
     def inject_globals():
-        from models import GameConfig, MenuItem, SiteContent
+        from models import GameConfig, MenuItem, Question, SiteContent
+        from flask_login import current_user
         if 'game_config' not in g:
             g.game_config  = GameConfig.query.first()
             g.menu_items   = MenuItem.query.filter_by(is_active=True).order_by(MenuItem.position).all()
             g.site_content = SiteContent.query.first()
+            g.unassigned_pool_count = (
+                Question.query.filter_by(level_id=None).count()
+                if current_user.is_authenticated and current_user.is_admin
+                else 0
+            )
         return dict(
-            game_config  = g.game_config,
-            menu_items   = g.menu_items,
-            site_content = g.site_content,
+            game_config           = g.game_config,
+            menu_items            = g.menu_items,
+            site_content          = g.site_content,
+            unassigned_pool_count = g.unassigned_pool_count,
         )
 
     @app.before_request

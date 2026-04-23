@@ -13,42 +13,48 @@
 <!-- Filter Bar -->
 <div class="card mb-4 shadow-sm">
     <div class="card-body">
-        <form method="GET" action="{{ url_for('admin.game_logs') }}" class="row g-3 align-items-center">
-            <div class="col-auto">
-                <label for="team_filter" class="form-label mb-0 fw-bold"><i class="bi bi-filter"></i> Filter by
-                    Team:</label>
-            </div>
-            <div class="col-md-4">
-                <select name="team_id" id="team_filter" class="form-select" onchange="this.form.submit()">
-                    <option value="">All Teams / Global Actions</option>
-                    {% for team in teams %}
-                    <option value="{{ team.id }}" {% if selected_team_id==team.id %}selected{% endif %}>
-                        {{ team.name }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            {% if selected_team_id %}
-            <div class="col-auto">
+        <div class="row g-3 align-items-center">
+            <!-- Team filter (own form) -->
+            <form method="GET" action="{{ url_for('admin.game_logs') }}"
+                  class="col-12 d-flex flex-wrap gap-3 align-items-center mb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <label for="team_filter" class="form-label mb-0 fw-bold">
+                        <i class="bi bi-filter"></i> Filter by Team:
+                    </label>
+                    <select name="team_id" id="team_filter" class="form-select" style="min-width:200px;"
+                            onchange="this.form.submit()">
+                        <option value="">All Teams / Global Actions</option>
+                        {% for team in teams %}
+                        <option value="{{ team.id }}" {% if selected_team_id == team.id %}selected="selected"{% endif %}>
+                            {{ team.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if selected_team_id %}
                 <a href="{{ url_for('admin.game_logs') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-x-circle"></i> Clear Filter
                 </a>
-            </div>
-            {% endif %}
+                {% endif %}
+
+                <!-- Right-side buttons (outside the filter form but visually grouped) -->
+                <div class="ms-auto d-flex gap-2">
+                    <button type="button" class="btn btn-outline-primary" onclick="window.location.reload()">
+                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                    </button>
+                </div>
+            </form>
+
+            <!-- Clear logs — separate form so it never nests -->
             <div class="col-auto ms-auto">
-                <button type="button" class="btn btn-outline-primary" onclick="window.location.reload()">
-                    <i class="bi bi-arrow-clockwise"></i> Refresh
-                </button>
-            </div>
-            <div class="col-auto">
                 <form action="{{ url_for('admin.clear_game_logs') }}" method="POST"
-                    onsubmit="return confirm('WARNING: This will permanently delete ALL game logs. are you sure you want to continue?')">
+                      onsubmit="return confirm('WARNING: This will permanently delete ALL game logs. Are you sure?')">
                     <button type="submit" class="btn btn-outline-danger">
                         <i class="bi bi-trash"></i> Clear All Logs
                     </button>
                 </form>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
