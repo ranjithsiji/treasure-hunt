@@ -204,6 +204,146 @@
     </div>
 </div>
 
+<!-- Clue Management -->
+<div class="row mt-2">
+    <!-- Global clue setting -->
+    <div class="col-md-4 mb-4">
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <i class="bi bi-lightbulb-fill"></i> Global Clue Allowance
+            </div>
+            <div class="admin-card-body">
+                {% if config %}
+                <div class="card mb-3"
+                    style="background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%); border: none;">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-lightbulb-fill text-white" style="font-size: 2.5rem; opacity: 0.8;"></i>
+                        <h6 class="text-uppercase text-white mt-2 mb-1" style="letter-spacing:1px; opacity:.9;">
+                            Default Clues / Team
+                        </h6>
+                        <div class="mt-3 p-3 rounded" style="background:rgba(255,255,255,.25);">
+                            <span class="text-white fw-bold" style="font-size:2.5rem;">{{ config.clues_per_team }}</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-muted small mb-3">
+                    Default clue budget for every team. Teams without a per-team override use this value.
+                </p>
+                <form method="POST" action="{{ url_for('admin.update_global_clues') }}">
+                    <div class="admin-form-group mb-2">
+                        <label for="clues_per_team" class="admin-form-label">New Default</label>
+                        <input type="number" class="form-control admin-form-control" id="clues_per_team"
+                               name="clues_per_team" min="0" value="{{ config.clues_per_team }}" required>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="reset_overrides" name="reset_overrides">
+                        <label class="form-check-label small" for="reset_overrides">
+                            Also clear all per-team overrides
+                        </label>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-save"></i> Update Global Default
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-warning mb-0">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    Game not initialised yet. <a href="{{ url_for('admin.initialize_game') }}">Initialise the game</a> first.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Per-team overrides -->
+    <div class="col-md-8 mb-4">
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <i class="bi bi-people-fill"></i> Per-Team Clue Overrides
+            </div>
+            <div class="admin-card-body p-0">
+                {% if teams %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Team</th>
+                                <th class="text-center">Used</th>
+                                <th class="text-center">Allowance</th>
+                                <th class="text-center">Remaining</th>
+                                <th style="width:220px;">Set Override</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for team in teams %}
+                            {% set used = clues_used_map.get(team.id, 0) %}
+                            {% set allowance = team.clue_allowance if team.clue_allowance is not none else (config.clues_per_team if config else 0) %}
+                            {% set remaining = [0, allowance - used] | max %}
+                            <tr>
+                                <td>
+                                    <strong>{{ team.name }}</strong>
+                                    {% if team.clue_allowance is not none %}
+                                    <span class="badge bg-info ms-1" title="Per-team override active">custom</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary">{{ used }}</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge {% if team.clue_allowance is not none %}bg-info{% else %}bg-secondary{% endif %}">
+                                        {{ allowance }}
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge {% if remaining == 0 %}bg-danger{% elif remaining <= 3 %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                        {{ remaining }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <form method="POST"
+                                          action="{{ url_for('admin.update_team_clues', team_id=team.id) }}"
+                                          class="d-flex gap-1 align-items-center">
+                                        <input type="number" name="clue_allowance" min="0"
+                                               class="form-control form-control-sm"
+                                               style="width:80px;"
+                                               placeholder="{{ allowance }}"
+                                               value="{{ team.clue_allowance if team.clue_allowance is not none else '' }}">
+                                        <button type="submit" class="btn btn-sm btn-primary" title="Save">
+                                            <i class="bi bi-save"></i>
+                                        </button>
+                                        {% if team.clue_allowance is not none %}
+                                        <button type="submit" name="clue_allowance" value=""
+                                                class="btn btn-sm btn-outline-secondary" title="Reset to global default">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                        {% endif %}
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-3 py-2 border-top">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        Leave the field blank and save to reset a team back to the global default.
+                        The <span class="badge bg-info">custom</span> badge marks teams with an override.
+                    </small>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-people" style="font-size:2rem;"></i>
+                    <p class="mt-2 mb-0">No teams yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(function () {

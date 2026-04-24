@@ -43,21 +43,26 @@ class Team(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     total_time = db.Column(db.Integer, default=0)  # in seconds
     member_names = db.Column(db.Text, nullable=True)  # Comma-separated list of team member names
+    clue_allowance = db.Column(db.Integer, nullable=True)  # Per-team override; NULL means use global config
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     members = db.relationship('User', back_populates='team', cascade='all, delete-orphan')
     progress = db.relationship('TeamProgress', back_populates='team', cascade='all, delete-orphan')
     clue_usages = db.relationship('ClueUsage', back_populates='team', cascade='all, delete-orphan')
     logs = db.relationship('GameLog', back_populates='team', cascade='all, delete-orphan')
 
     @property
-    def clues_remaining(self):
-        """Calculates clues remaining for the total game from config."""
+    def effective_clue_allowance(self):
+        """Returns this team's clue allowance: per-team override if set, else global config."""
         config = GameConfig.query.first()
         if not config:
             return 0
+        return self.clue_allowance if self.clue_allowance is not None else config.clues_per_team
+
+    @property
+    def clues_remaining(self):
         total_used = ClueUsage.query.filter_by(team_id=self.id).count()
-        return max(0, config.clues_per_team - total_used)
+        return max(0, self.effective_clue_allowance - total_used)
 
 
 class GameConfig(db.Model):
