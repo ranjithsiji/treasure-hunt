@@ -171,7 +171,7 @@ def submit_answer():
         log_game_action(
             'SUBMIT_INCORRECT_ANSWER',
             team_id=team.id,
-            details=f"Incorrect answer for Question {question.question_number} in Level {current_level.level_number}.",
+            details=f"Incorrect answer for Question {question.question_number} in Level {current_level.level_number}. Entered: \"{answer}\"",
         )
         return jsonify({'success': False, 'message': 'Incorrect answer. Try again!'})
 
