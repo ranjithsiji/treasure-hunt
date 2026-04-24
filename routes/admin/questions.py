@@ -190,6 +190,7 @@ def edit_question(question_id):
         question.question_text = question_text
         question.answer = answer
         question.points = _safe_int(request.form.get('points'), default=10, minimum=0)
+        question.explanation = (request.form.get('explanation') or '').strip() or None
         num_media = _safe_int(request.form.get('num_media'), default=0, minimum=0)
 
         if request.form.get('remove_image') == 'true':

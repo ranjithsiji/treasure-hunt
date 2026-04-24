@@ -95,7 +95,7 @@
                         </label>
                         <div class="summernote-container">
                             <textarea id="explanation" name="explanation"
-                                class="form-control">{% if question %}{{ question.explanation | safe }}{% endif %}</textarea>
+                                class="form-control">{% if question and question.explanation %}{{ question.explanation | safe }}{% endif %}</textarea>
                         </div>
                         <small class="text-muted">
                             <i class="bi bi-info-circle"></i>
