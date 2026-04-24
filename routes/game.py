@@ -60,11 +60,16 @@ def dashboard():
     if team.current_question > total_questions:
         # Fix #7: compute qualified explicitly here — don't leave it to template inference
         qualified = team.current_level > current_level.level_number
+        last_question = Question.query.filter_by(
+            level_id=current_level.id,
+            question_number=total_questions,
+        ).first()
         return render_template(
             'game/level_complete.html',
             team=team,
             level=current_level,
             qualified=qualified,
+            last_question=last_question,
         )
 
     # Get current question
